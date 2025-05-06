@@ -3,13 +3,46 @@ const utils = require('../../../utils/utils');
 const mongoose = require("mongoose");
 
 const authMethods = ['email', 'google', 'facebook', 'apple', 'github', 'phone'];
+const genders = ['Male', 'Female', 'Other'];
 
 const entitySchema = new mongoose.Schema({
+    username: String,
+    displayName: String,
     firstName: String,
     lastName: String,
     fullName: String,
-    userName: String,
-    imgUrl: String,
+    email: {
+        type: String,
+        lowercase: true,
+    },
+    phone: String,
+    gender: {
+        type: String,
+        enum: genders,
+    },
+    status: {
+        type: String,
+        enum: ['normal', 'creator', 'pending', 'active', 'deleted', 'blocked'],
+        default: 'normal',
+    },
+    isDisabled: {
+        type: Boolean,
+        default: false,
+    },
+    profilePicture: String,
+    createdAt: {
+        type: Date,
+        default: Date.now,
+    },
+    lastActiveAt: Date,
+    joiningDate: {
+        type: Date,
+        default: Date.now,
+    },
+    postsCount: {
+        type: Number,
+        default: 0,
+    },
     authMethod: {
         type: String,
         enum: authMethods,
@@ -17,18 +50,8 @@ const entitySchema = new mongoose.Schema({
     },
     countryCode: String,
     ISOCode: String,
-    phone: String,
-    email: {
-        type: String,
-        lowercase: true,
-    },
     activationCode: String,
     password: String,
-    status: {
-        type: String,
-        enum: ['pending', 'active', 'deleted', 'blocked'],
-        default: 'pending',
-    },
     role: {
         type: String,
         enum: ['superAdmin', 'user', 'admin'],
@@ -81,13 +104,15 @@ const entitySchema = new mongoose.Schema({
 
 entitySchema.statics.newEntity = async function (body, createdByAdmin = true) {
     const model = {
+        username: body.username || (body.firstName ? `${body.firstName}_${utils.generateRandomAlphaNumeric()}` : utils.generateRandomAlphaNumeric()),
+        displayName: body.displayName || (body.firstName && body.lastName ? `${body.firstName} ${body.lastName}` : null),
         firstName: body.firstName,
         lastName: body.lastName,
         fullName: body.firstName && body.lastName ? `${body.firstName} ${body.lastName}` : null,
-        authMethod: body.authMethod,
-        userName: body.firstName ? `${body.firstName}_${utils.generateRandomAlphaNumeric()}` : utils.generateRandomAlphaNumeric(),
         email: body.email,
         phone: body.phone,
+        gender: body.gender,
+        authMethod: body.authMethod,
         ISOCode: body.ISOCode,
         countryCode: body.countryCode,
         role: body.role,
@@ -96,6 +121,8 @@ entitySchema.statics.newEntity = async function (body, createdByAdmin = true) {
         facebookId: body.facebookId,
         appleId: body.appleId,
         stripeCustomerId: body.stripeCustomerId || "",
+        createdAt: new Date(),
+        joiningDate: new Date(),
     };
 
     if (body.password) {

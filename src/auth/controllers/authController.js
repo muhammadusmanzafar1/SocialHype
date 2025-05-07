@@ -10,6 +10,11 @@ exports.registerUser = asyncHandler(async (req, res) => {
      return user;
 });
 
+exports.registerViaPhone = asyncHandler( async (req, res)=> {
+    let user = await authService.registerWithPhone(req.body);
+    return user;
+})
+
 exports.verifyOTP = asyncHandler(async (req, res) => {
     let user = await authService.verifyOTP(req.body);
     user.deviceId = req.body.deviceId;

@@ -1,15 +1,19 @@
+const ApiError = require("../../../utils/ApiError");
+const httpStatus = require("http-status");
 const User = require("../models/user");
 
 // Get full profile info for a user by their ID
 exports.getProfile = async (req, res) => {
   const { userId } = req.params;
-
   try {
     const user = await User.findById(userId).select("-__v");
-    if (!user) return res.status(404).json({ message: "User not found" });
-    res.json(user);
+    if (!user) throw new ApiError("User Not Found!", 404);
+    return user;
   } catch (err) {
-    res.status(400).json({ message: "Invalid user ID" });
+    throw new ApiError(
+      `Error While Fetching Data: ${err.message}`,
+      httpStatus.status.INTERNAL_SERVER_ERROR
+    );
   }
 };
 
@@ -31,12 +35,13 @@ exports.editProfile = async (req, res) => {
       { new: true, runValidators: true }
     );
 
-    if (!updatedUser)
-      return res.status(404).json({ message: "User not found" });
-
-    res.json(updatedUser);
+    if (!updatedUser) throw new ApiError("User Not Found!", 404);
+    return updatedUser;
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    throw new ApiError(
+      `Error While Editing Profile Data : ${err.message}`,
+      httpStatus.status.INTERNAL_SERVER_ERROR
+    );
   }
 };
 
@@ -45,24 +50,21 @@ exports.registerCreator = async (req, res) => {
   const { userId, exclusivePrice } = req.body;
 
   if (exclusivePrice == null || exclusivePrice < 0) {
-    return res
-      .status(400)
-      .json({ message: "Valid exclusivePrice is required" });
+    throw new ApiError("Valid ExclusivePrice is Required", 400);
   }
-
   try {
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       { isCreator: true, exclusivePrice },
       { new: true, runValidators: true }
     );
-
-    if (!updatedUser)
-      return res.status(404).json({ message: "User not found" });
-
-    res.json(updatedUser);
+    if (!updatedUser) throw new ApiError("User Not Found!", 404);
+    return updatedUser;
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    throw new ApiError(
+      `Error While Editing Profile Data : ${err.message}`,
+      httpStatus.status.INTERNAL_SERVER_ERROR
+    );
   }
 };
 
@@ -72,45 +74,42 @@ exports.unregisterAsCreator = async (req, res) => {
     const userId = req.user.id;
 
     const user = await User.findById(userId);
-    if (!user || !user.isCreator) {
-      return res.status(400).json({ message: "User is not a creator" });
-    }
-
+    if (!user || !user.isCreator)
+      throw new ApiError("User is Not a Creater", 400);
     user.isCreator = false;
     user.exclusivePrice = undefined;
     await user.save();
-
-    res
-      .status(200)
-      .json({ message: "Creator role removed successfully", user });
+    return user;
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    throw new ApiError(
+      `Error While Editing Profile Data : ${err.message}`,
+      httpStatus.status.INTERNAL_SERVER_ERROR
+    );
   }
 };
 
+// Change the exclusive content price for a creator
 exports.changeExclusivePrice = async (req, res) => {
   try {
     const userId = req.user.id;
     const { exclusivePrice } = req.body;
 
     if (exclusivePrice === undefined || typeof exclusivePrice !== "number") {
-      return res
-        .status(400)
-        .json({ message: "exclusivePrice must be a valid number" });
+      throw new ApiError("ExclusivePrice must be a valid number", 400);
     }
 
     const user = await User.findById(userId);
     if (!user || !user.isCreator) {
-      return res
-        .status(400)
-        .json({ message: "Only creators can change the exclusive price" });
+      throw new ApiError("Only creators can change the exclusive price", 400);
     }
 
     user.exclusivePrice = exclusivePrice;
     await user.save();
-
-    res.status(200).json({ message: "Exclusive price updated", user });
+    return user;
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    throw new ApiError(
+      `Error While Editing Profile Data : ${err.message}`,
+      httpStatus.status.INTERNAL_SERVER_ERROR
+    );
   }
 };

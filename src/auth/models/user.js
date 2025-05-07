@@ -30,6 +30,7 @@ const entitySchema = new mongoose.Schema({
         default: false,
     },
     profilePicture: String,
+    profileBanner: String,
     createdAt: {
         type: Date,
         default: Date.now,

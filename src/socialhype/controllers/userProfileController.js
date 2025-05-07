@@ -1,6 +1,6 @@
-const ApiError = require("../../../utils/ApiError");
+const ApiError = require("../../../utils/ApiError.js");
 const httpStatus = require("http-status");
-const User = require("../models/user");
+const User = require("../../../src/auth/models/user.js");
 
 // Get full profile info for a user by their ID
 exports.getProfile = async (req, res) => {

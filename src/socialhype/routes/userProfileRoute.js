@@ -4,6 +4,7 @@ const httpStatus = require("http-status");
 const profileController = require("../controllers/userProfileController.js");
 const ApiError = require("../../../utils/ApiError.js");
 
+
 router.get("/profile/:userId", async (req, res) => {
   try {
     const user = await profileController.getProfile(req, res);

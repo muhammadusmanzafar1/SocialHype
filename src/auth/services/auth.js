@@ -2,7 +2,7 @@
 const httpStatus = require('http-status');
 const userService = require('./users');
 const ApiError = require("../../../utils/ApiError");
-const userDB = require('../models/User')
+const userDB = require('../models/user')
 const utils = require('../../../utils/utils');
 const email = require('../../../utils/email');
 

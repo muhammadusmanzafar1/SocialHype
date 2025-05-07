@@ -19,48 +19,30 @@ app.use(function (err, req, res, next) {
         } else {
             next(err);
         }
-
         return;
     }
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE");
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization, x-access-token");
     next();
 });
 
 // Middleware
-
-// sanitize request data
 app.use(mongoSanitize());
-
-// enable cors
 app.use(cors());
 app.options('*', cors());
-
-//media Uploads
 app.use(upload.any());
-
-// parse json request body
 app.use(express.json({ limit: '50mb' }));
-
-// parse urlencoded request body
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
-
 app.use(helmet());
-
-// cookie parser
 app.use(cookieParser());
-
 app.use(compression());
 
 // Routes
-// app.use("/api/users", require("./routes/userRoutes"));
 app.use("/api/auth", require("./src/auth/routes/authRoute"));
+app.use("/api/followers", require("./src/auth/routes/followersRoute"));
 
-// convert error to CustomError, if needed
 app.use(errorConverter);
-
-// handle error
 app.use(errorHandler);
 
 app.get("/", (req, res) => {

@@ -1,46 +1,29 @@
-const asyncHandler = require('express-async-handler');
-const followersService = require('../services/followers');
-const httpStatus = require('http-status');
+const { getFollowing, getFollowers, followUser, acceptFollowRequest, unfollowUser } = require('../services/followers');
 
-const getFollowing = asyncHandler(async (req, res) => {
-    const { userId } = req.params;
-    const { limit, page } = req.query;
-    const result = await followersService.getFollowing(userId, { limit: parseInt(limit), page: parseInt(page) });
-    res.status(httpStatus.OK).json({ message: 'Following list retrieved', ...result });
-});
+const getFollowingController = async (userId, query) => {
+  return await getFollowing(userId, query);
+};
 
-const getFollowers = asyncHandler(async (req, res) => {
-    const { userId } = req.params;
-    const { limit, page } = req.query;
-    const result = await followersService.getFollowers(userId, { limit: parseInt(limit), page: parseInt(page) });
-    res.status(httpStatus.OK).json({ message: 'Followers list retrieved', ...result });
-});
+const getFollowersController = async (userId, query) => {
+  return await getFollowers(userId, query);
+};
 
-const followUser = asyncHandler(async (req, res) => {
-    const { userId } = req.body;
-    const followerId = req.user._id;
-    const result = await followersService.followUser(followerId, userId);
-    res.status(httpStatus.OK).json(result);
-});
+const followUserController = async (followerId, userId) => {
+  return await followUser(followerId, userId);
+};
 
-const acceptFollowRequest = asyncHandler(async (req, res) => {
-    const { requesterId } = req.body;
-    const userId = req.user._id;
-    const result = await followersService.acceptFollowRequest(userId, requesterId);
-    res.status(httpStatus.OK).json(result);
-});
+const acceptFollowRequestController = async (userId, requesterId) => {
+  return await acceptFollowRequest(userId, requesterId);
+};
 
-const unfollowUser = asyncHandler(async (req, res) => {
-    const { userId } = req.body;
-    const followerId = req.user._id;
-    const result = await followersService.unfollowUser(followerId, userId);
-    res.status(httpStatus.OK).json(result);
-});
+const unfollowUserController = async (followerId, userId) => {
+  return await unfollowUser(followerId, userId);
+};
 
 module.exports = {
-    getFollowing,
-    getFollowers,
-    followUser,
-    acceptFollowRequest,
-    unfollowUser,
+  getFollowing: getFollowingController,
+  getFollowers: getFollowersController,
+  followUser: followUserController,
+  acceptFollowRequest: acceptFollowRequestController,
+  unfollowUser: unfollowUserController,
 };

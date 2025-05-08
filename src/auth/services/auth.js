@@ -57,6 +57,36 @@ const registerWithEmail = async (body) => {
     return await newUser.save();
 };
 
+const registerWithPhone = async (body) => {
+     let existingUser;
+ 
+     if (body.phone) {
+         existingUser = await userService.get({
+             phone: body.phone
+         });
+     }
+
+     if (existingUser) await validateUser(existingUser);
+ 
+     if (existingUser) {
+         if (existingUser.status === 'pending') {
+             existingUser.activationCode = utils.randomPin();
+             await email.PhoneVerificationOTP(body.phone, existingUser.activationCode);
+             return await existingUser.save();
+         } else {
+             throw new ApiError('Phone number already exists', httpStatus.status.BAD_REQUEST);
+         }
+     }
+ 
+     const model = await userDB.newEntity(body, false);
+     const newUser = new userDB(model);
+ 
+     newUser.activationCode = utils.randomPin();
+     await email.PhoneVerificationOTP(body.phone, newUser.activationCode);
+ 
+     return await newUser.save();
+ };
+
 const verifyOTP = async (body) => {
      let user = await userService.get(body.userId);
      
@@ -130,12 +160,12 @@ const login = async (body) => {
 
 
 const validateUser = async (user) => {
-    if (!user.isEmailVerified && user.status === 'pending') {
-         throw new ApiError(
-              'This user is not verified yet!',
-              httpStatus.status.UNAUTHORIZED
-         );
-    }
+//     if (!user.isEmailVerified && user.status === 'pending') {
+//          throw new ApiError(
+//               'This user is not verified yet!',
+//               httpStatus.status.UNAUTHORIZED
+//          );
+//     }
     if (user.status === 'inactive') {
          throw new ApiError(
               'Your account has been inactive. Please contact your admin.',
@@ -158,6 +188,7 @@ const validateUser = async (user) => {
 
 module.exports = {
      registerWithEmail,
+     registerWithPhone,
      verifyOTP,
      login
 }

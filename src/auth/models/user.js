@@ -22,14 +22,32 @@ const entitySchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['normal', 'creator', 'pending', 'active', 'deleted', 'blocked'],
+        enum: ['pending', 'active', 'deleted', 'blocked'],
         default: 'normal',
+    },
+    userType: {
+        type: String,
+        enum: ['normal', 'creator'],
+        default: 'normal',
+    },
+    joinedCommunity: {
+        type: [mongoose.Schema.Types.ObjectId],
+        ref: "community",
+    },
+    accountReports: {
+        type: [mongoose.Schema.Types.ObjectId],
+        ref: "user",
+    },
+    postReports: {
+        type: [mongoose.Schema.Types.ObjectId],
+        ref: "post",
     },
     isDisabled: {
         type: Boolean,
         default: false,
     },
     profilePicture: String,
+    profileBanner: String,
     createdAt: {
         type: Date,
         default: Date.now,

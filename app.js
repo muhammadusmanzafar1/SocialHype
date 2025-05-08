@@ -8,6 +8,7 @@ const cookieParser = require('cookie-parser');
 const upload = multer({ storage: multer.memoryStorage() });
 const helmet = require("helmet");
 const compression = require("compression");
+const apiRouter = require('./src/routes/index')
 
 const app = express();
 
@@ -56,6 +57,7 @@ app.use(compression());
 // Routes
 // app.use("/api/users", require("./routes/userRoutes"));
 app.use("/api/auth", require("./src/auth/routes/authRoute"));
+app.use("/api", apiRouter);
 
 // convert error to CustomError, if needed
 app.use(errorConverter);

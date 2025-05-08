@@ -22,8 +22,17 @@ const entitySchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['normal', 'creator', 'pending', 'active', 'deleted', 'blocked'],
+        enum: ['pending', 'active', 'deleted', 'blocked'],
         default: 'normal',
+    },
+    userType: {
+        type: String,
+        enum: ['normal', 'creator'],
+        default: 'normal',
+    },
+    joinedCommunity: {
+        type: [mongoose.Schema.Types.ObjectId],
+        ref: "community",
     },
     isDisabled: {
         type: Boolean,

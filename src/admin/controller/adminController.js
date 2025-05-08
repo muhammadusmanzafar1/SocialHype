@@ -16,8 +16,8 @@ exports.addUser = async (req, res) => {
     return retval;
 }
 
-exports.updateUser = async (req, res) => {
-    const retval = await adminService.updateUser(req, res);
+exports.updateUserStatus = async (req, res) => {
+    const retval = await adminService.updateUserStatus(req, res);
     return retval;
 }
 exports.deleteUser = async (req, res) => {
@@ -32,5 +32,20 @@ exports.deleteUser = async (req, res) => {
 
 exports.deletePost = async (req, res) => {
     const retval = await adminService.deletePost(req, res);
+    return retval;
+}
+
+exports.updatePostStatus = async (req, res) => {
+    const retval = await adminService.updatePostStatus(req, res);
+    return retval;
+}
+
+exports.getAllPosts = async (req, res) => {
+    const retval = await adminService.getAllPosts(req, res);
+    return retval;
+}
+
+exports.getAllReports = async (req, res) => {
+    const retval = await adminService.getAllReports(req, res);
     return retval;
 }

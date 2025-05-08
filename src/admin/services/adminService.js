@@ -1,17 +1,14 @@
 const User = require("../../auth/models/user");
+const Post = require("../../socialhype/models/userPost");
 const ApiError = require("../../../utils/ApiError");
 const httpStatus = require("http-status");
 
 exports.getUsersList = async (req, res) => {
     try {
-        const { page = 1, limit = 10, status, isEnabled } = req.query;
+        const { page = 1, limit = 10 } = req.query;
 
-        const filters = {};
-        if (status) filters.status = status;
-        if (isEnabled !== undefined) filters.isEnabled = isEnabled === 'true';
-
-        const users = await User.find(filters)
-            .select("username email gender status createdAt lastActive totalPosts isEnabled")
+        const users = await User.find()
+            .select("username email gender status createdAt lastActive totalPosts isDisable")
             .sort({ createdAt: -1 })
             .skip((page - 1) * limit)
             .limit(parseInt(limit));
@@ -19,7 +16,7 @@ exports.getUsersList = async (req, res) => {
         const totalUsers = await User.countDocuments(filters);
 
         if (!users || users.length === 0) {
-            throw new ApiError(httpStatus.NOT_FOUND, "No users found");
+            throw new ApiError( "No users found", httpStatus.status.NOT_FOUND);
         }
 
         return {
@@ -31,7 +28,7 @@ exports.getUsersList = async (req, res) => {
                 createdOn: user.createdAt,
                 lastActive: user.lastActive,
                 totalPosts: user.totalPosts,
-                accountStatus: user.isEnabled ? "Enabled" : "Disabled",
+                accountStatus: user.isDisable ? "isDisable" : "Enabled",
             })),
             totalUsers,
             totalPages: Math.ceil(totalUsers / limit),
@@ -49,7 +46,7 @@ exports.getUserDetails = async (req, res) => {
         const user = await User.findById(userId);
 
         if (!user) {
-            throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+            throw new ApiError("User not found", httpStatus.status.NOT_FOUND);
         }
 
         return user;
@@ -80,7 +77,7 @@ exports.addUser = async (req, res) => {
     }
 };
 
-exports.updateUser = async (req, res) => {
+exports.updateUserStatus = async (req, res) => {
     try {
         const { userId } = req.params;
         const {
@@ -89,7 +86,7 @@ exports.updateUser = async (req, res) => {
 
         const user = await User.findById(userId);
         if (!user) {
-            throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+            throw new ApiError(httpStatus.status.NOT_FOUND, "User not found");
         }
         user.isDisabled = isDisabled;
         await user.save();
@@ -106,7 +103,7 @@ exports.deleteUser = async (req, res) => {
 
         const user = await User.findById(userId);
         if (!user) {
-            throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+            throw new ApiError(httpStatus.status.NOT_FOUND, "User not found");
         }
         user.status = "deleted";
         await user.save();
@@ -144,12 +141,100 @@ exports.deletePost = async (req, res) => {
 
         const post = await Post.findById(postId);
         if (!post) {
-            throw new ApiError(httpStatus.NOT_FOUND, "Post not found");
+            throw new ApiError(httpStatus.status.NOT_FOUND, "Post not found");
         }
         await post.remove();
         return post;
     }
     catch (error) {
         throw new ApiError(`Error deleting post: ${error.message}`, error.statusCode || httpStatus.status.INTERNAL_SERVER_ERROR);
+    }
+}
+
+exports.updatePostStatus = async (req, res) => {
+    try {
+        const { postId } = req.params;
+        const { isDisabled } = req.body;
+
+        const post = await Post.findById(postId);
+        if (!post) {
+            throw new ApiError(httpStatus.status.NOT_FOUND, "Post not found");
+        }
+        post.isDisabled = isDisabled;
+        await post.save();
+        return post;
+    }
+    catch (error) {
+        throw new ApiError(`Error updating post status: ${error.message}`, error.statusCode || httpStatus.status.INTERNAL_SERVER_ERROR);
+    }
+}
+
+exports.getAllPosts = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const { page = 1, limit = 10 } = req.query;
+
+        const posts = await Post.find({userId: userId})
+            .select("title content createdAt userId isDisabled")
+            .sort({ createdAt: -1 })
+            .skip((page - 1) * limit)
+            .limit(parseInt(limit));
+
+        const totalPosts = await Post.countDocuments();
+
+        if (!posts || posts.length === 0) {
+            throw new ApiError(httpStatus.status.NOT_FOUND, "No posts found");
+        }
+
+        return {
+            posts: posts.map(post => ({
+                title: post.title,
+                content: post.content,
+                createdOn: post.createdAt,
+                userId: post.userId,
+                isDisabled: post.isDisabled,
+            })),
+            totalPosts,
+            totalPages: Math.ceil(totalPosts / limit),
+            currentPage: parseInt(page),
+        };
+    } catch (error) {
+        throw new ApiError(`Error fetching posts: ${error.message}`, error.statusCode || httpStatus.status.INTERNAL_SERVER_ERROR);
+    }
+}
+
+exports.getAllReports = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const { page = 1, limit = 10 } = req.query;
+
+        const reports = await Report.find({userId: userId})
+            .select("post reportedBy reason details status createdAt reviewedAt")
+            .sort({ createdAt: -1 })
+            .skip((page - 1) * limit)
+            .limit(parseInt(limit));
+
+        const totalReports = await Report.countDocuments();
+
+        if (!reports || reports.length === 0) {
+            throw new ApiError( "No reports found", httpStatus.status.NOT_FOUND);
+        }
+
+        return {
+            reports: reports.map(report => ({
+                post: report.post,
+                reportedBy: report.reportedBy,
+                reason: report.reason,
+                details: report.details,
+                status: report.status,
+                createdOn: report.createdAt,
+                reviewedOn: report.reviewedAt,
+            })),
+            totalReports,
+            totalPages: Math.ceil(totalReports / limit),
+            currentPage: parseInt(page),
+        };
+    } catch (error) {
+        throw new ApiError(`Error fetching reports: ${error.message}`, error.statusCode || httpStatus.status.INTERNAL_SERVER_ERROR);
     }
 }

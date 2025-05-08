@@ -7,7 +7,7 @@ const PostSchema = new mongoose.Schema({
     trim: true,
   },
   media: {
-    type: [String], 
+    type: [String],
     default: [],
   },
   author: {
@@ -16,7 +16,7 @@ const PostSchema = new mongoose.Schema({
     required: true,
   },
   likes: {
-    type: [mongoose.Schema.Types.ObjectId], 
+    type: [mongoose.Schema.Types.ObjectId],
     ref: 'User',
     default: [],
   },
@@ -34,16 +34,26 @@ const PostSchema = new mongoose.Schema({
     type: [mongoose.Schema.Types.ObjectId],
     ref: 'User',
     default: [],
-    },
-    tags: {
-        type: [String], 
-        default: [],
-    },
-    status: {
-        type: String,
-        enum: ['Public', 'Friends', 'Private', 'Restricted', 'deleted'],
-        default: 'Public',
-    },
+  },
+  tags: {
+    type: [String],
+    default: [],
+  },
+  status: {
+    type: String,
+    enum: ['Public', 'Friends', 'Private', 'Restricted', 'deleted'],
+    default: 'Public',
+  },
+
+  reports: {
+    type: [
+      {
+        user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        createdAt: { type: Date, default: Date.now },
+      },
+    ],
+    default: [],
+  },
   createdAt: {
     type: Date,
     default: Date.now,

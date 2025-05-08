@@ -1,6 +1,8 @@
 'use-strict';
 const adminService = require('../services/adminService');
 
+// <---- User Management Controller ----->
+
 exports.getUsersList = async (req, res) => {
     const retval = await adminService.getUsersList(req, res);
     return retval;
@@ -30,13 +32,15 @@ exports.deleteUser = async (req, res) => {
 //     return retval;
 // }
 
+// <---- Post Management Controller ----->
+
 exports.deletePost = async (req, res) => {
     const retval = await adminService.deletePost(req, res);
     return retval;
 }
 
-exports.updatePostStatus = async (req, res) => {
-    const retval = await adminService.updatePostStatus(req, res);
+exports.disablePost = async (req, res) => {
+    const retval = await adminService.disablePost(req, res);
     return retval;
 }
 
@@ -44,6 +48,8 @@ exports.getAllPosts = async (req, res) => {
     const retval = await adminService.getAllPosts(req, res);
     return retval;
 }
+
+// <---- Report Management Controller ----->
 
 exports.getAllReports = async (req, res) => {
     const retval = await adminService.getAllReports(req, res);

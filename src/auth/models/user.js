@@ -34,6 +34,14 @@ const entitySchema = new mongoose.Schema({
         type: [mongoose.Schema.Types.ObjectId],
         ref: "community",
     },
+    accountReports: {
+        type: [mongoose.Schema.Types.ObjectId],
+        ref: "user",
+    },
+    postReports: {
+        type: [mongoose.Schema.Types.ObjectId],
+        ref: "post",
+    },
     isDisabled: {
         type: Boolean,
         default: false,

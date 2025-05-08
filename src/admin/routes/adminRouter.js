@@ -43,9 +43,9 @@ router.post("/addUser", async (req, res) => {
     }
 });
 
-router.patch("/updateStatus/:userId", async (req, res) => {
+router.patch("/changeUserStatus/:userId", async (req, res) => {
     try {
-        const user = await adminController.updateUser(req, res);
+        const user = await adminController.updateUserStatus(req, res);
         res.status(httpStatus.status.OK).json({
             isSuccess: true,
             message: "Status updated successfully",
@@ -94,5 +94,43 @@ router.delete("/deletePost/:postId", async (req, res) => {
 //         return res.status(httpStatus.status.INTERNAL_SERVER_ERROR).json({ message: error.message || "Server Error" });
 //     }
 // });
+
+router.patch("/changePostStatus/:userId", async (req, res) => {
+    try {
+        const post = await adminController.updatePostStatus(req, res);
+        res.status(httpStatus.status.OK).json({isSuccess: true, message: "Post status updated successfully", post });
+    } catch (error) {
+        if (error instanceof ApiError) {
+            return res.status(error.statusCode).json({ message: error.message });
+        }
+        return res.status(httpStatus.status.INTERNAL_SERVER_ERROR).json({ message: error.message || "Server Error" });
+    }
+}
+);
+
+router.get("/getAllPosts", async (req, res) => {
+    try {
+        const posts = await adminController.getAllPosts(req, res);
+        res.status(httpStatus.status.OK).json({isSuccess: true, message: "Posts fetched successfully", posts });
+    } catch (error) {
+        if (error instanceof ApiError) {
+            return res.status(error.statusCode).json({ message: error.message });
+        }
+        return res.status(httpStatus.status.INTERNAL_SERVER_ERROR).json({ message: error.message || "Server Error" });
+    }
+});
+
+router.get("/getAllReports", async (req, res) => {
+    try {
+        const reports = await adminController.getAllReports(req, res);
+        res.status(httpStatus.status.OK).json({isSuccess: true, message: "Reports fetched successfully", reports });
+    } catch (error) {
+        if (error instanceof ApiError) {
+            return res.status(error.statusCode).json({ message: error.message });
+        }
+        return res.status(httpStatus.status.INTERNAL_SERVER_ERROR).json({ message: error.message || "Server Error" });
+    }
+});
+
 
 module.exports = router;

@@ -8,7 +8,7 @@ const cookieParser = require('cookie-parser');
 const upload = multer({ storage: multer.memoryStorage() });
 const helmet = require("helmet");
 const compression = require("compression");
-const apiRouter = require('./src/routes/index')
+const apiRouter = require('./src/socialhype/routes/index')
 
 const app = express();
 

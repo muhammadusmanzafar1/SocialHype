@@ -2,8 +2,8 @@ const express = require("express");
 const router = express.Router();
 const httpStatus = require("http-status");
 const ApiError = require('../../../utils/ApiError');
-const { registerUser, verifyOTP, login, registerViaPhone } = require('../controllers/authController')
-const { registerViaEmail, validateVerifyOTP, loginVerify, registerViaPhone: registerViaPhones } = require("../validators/auth");
+const { registerUser, verifyOTP, login, registerViaPhone, userProfile, forgotPassword, updatePassword, resetPassword, logout } = require('../controllers/authController')
+const { registerViaEmail, validateVerifyOTP, loginVerify, registerViaPhone: registerViaPhones, userProfileValidation } = require("../validators/auth");
 
 // RegisterWithEmail
 router.post("/register/email", async (req, res) => {
@@ -27,6 +27,30 @@ router.post("/register/email", async (req, res) => {
         return res.status(httpStatus.status.INTERNAL_SERVER_ERROR).json({ message: error.message || "Server Error" });
     }
 });
+
+// RegisterWithEmailAndProfile
+router.post("/profile/:userId", async (req, res) => {
+    const { error, value } = userProfileValidation.body.validate(req.body, { abortEarly: false });
+
+    if (error) {
+        return res.status(httpStatus.status.BAD_REQUEST).json({
+            message: "Validation Error",
+            errors: error.details.map(err => err.message),
+        });
+    }
+
+    try {
+        const registeredUser = await userProfile(req, res);
+        res.status(httpStatus.status.CREATED).json({ message: "User registered successfully", user: registeredUser });
+    } catch (error) {
+        if (error instanceof ApiError) {
+            return res.status(error.statusCode).json({ message: error.message });
+        }
+
+        return res.status(httpStatus.status.INTERNAL_SERVER_ERROR).json({ message: error.message || "Server Error" });
+    }
+}
+);
 
 //RegisterWithPhone
 router.post("/register/phone", async (req, res) => {
@@ -108,6 +132,88 @@ router.post("/resendOTP", async (req, res) => {
     try {
         const data = await resendOTP(req, res);
         res.status(httpStatus.status.OK).json({ message: "OTP Resend successfully", data: data });
+    } catch (error) {
+        console.error(error)
+        if (error instanceof ApiError) {
+            return res.status(error.statusCode).json({ message: error.message });
+        }
+        return res.status(httpStatus.status.INTERNAL_SERVER_ERROR).json({ message: error.message || "Server Error" });
+    }
+});
+
+router.post('/forgotPassword', async (req, res) => {
+    const { error, value } = forgotPassword.body.validate(req.body, { abortEarly: false });
+    if (error) {
+        return res.status(httpStatus.status.BAD_REQUEST).json({
+            message: "Validation Error",
+            errors: error.details.map(err => err.message),
+        });
+    }
+    try {
+        const data = await forgotPassword(req, res);
+        res.status(httpStatus.status.OK).json({ message: "OTP sent successfully", data: data });
+    } catch (error) {
+        console.error(error)
+        if (error instanceof ApiError) {
+            return res.status(error.statusCode).json({ message: error.message });
+        }
+        return res.status(httpStatus.status.INTERNAL_SERVER_ERROR).json({ message: error.message || "Server Error" });
+    }
+}
+);
+
+router.put('/updatePassword/:id', async (req, res) => {
+    const { error, value } = updatePassword.body.validate(req.body, { abortEarly: false });
+    if (error) {
+        return res.status(httpStatus.status.BAD_REQUEST).json({
+            message: "Validation Error",
+            errors: error.details.map(err => err.message),
+        });
+    }
+    try {
+        const data = await updatePassword(req, res);
+        res.status(httpStatus.status.OK).json({ message: "Password updated successfully", data: data });
+    } catch (error) {
+        console.error(error)
+        if (error instanceof ApiError) {
+            return res.status(error.statusCode).json({ message: error.message });
+        }
+        return res.status(httpStatus.status.INTERNAL_SERVER_ERROR).json({ message: error.message || "Server Error" });
+    }
+}
+);
+
+router.put('/resetPassword/:id', async (req, res) => {
+    const { error, value } = resetPassword.body.validate(req.body, { abortEarly: false });
+    if (error) {
+        return res.status(httpStatus.status.BAD_REQUEST).json({
+            message: "Validation Error",
+            errors: error.details.map(err => err.message),
+        });
+    }
+    try {
+        const data = await resetPassword(req, res);
+        res.status(httpStatus.status.OK).json({ message: "Password updated successfully", data: data });
+    } catch (error) {
+        console.error(error)
+        if (error instanceof ApiError) {
+            return res.status(error.statusCode).json({ message: error.message });
+        }
+        return res.status(httpStatus.status.INTERNAL_SERVER_ERROR).json({ message: error.message || "Server Error" });
+    }
+});
+
+router.put('/logout/:id', async (req, res) => {
+    const { error, value } = logout.body.validate(req.body, { abortEarly: false });
+    if (error) {
+        return res.status(httpStatus.status.BAD_REQUEST).json({
+            message: "Validation Error",
+            errors: error.details.map(err => err.message),
+        });
+    }
+    try {
+        const data = await logout(req, res);
+        res.status(httpStatus.status.OK).json({ message: "User Logout successfully", data: data });
     } catch (error) {
         console.error(error)
         if (error instanceof ApiError) {

@@ -3,25 +3,45 @@ const Joi = require('joi');
 const { password, phone } = require('../../../validators/common.validation');
 
 const registerViaEmail = {
-    body: Joi.object().keys({
+    body: Joi.object()
+      .keys({
         authMethod: Joi.string().required().valid('email', 'google', 'facebook', 'apple', 'github', 'phone'),
-        firstName: Joi.string().optional(),
-        lastName: Joi.string().optional(),
-        fullName: Joi.string(),
+
         email: Joi.string().optional().email().lowercase(),
         password: Joi.string().required().custom(password),
         deviceId: Joi.string().optional(),
         googleId: Joi.string().optional(),
         facebookId: Joi.string().optional(),
+
+
         appleId: Joi.string().optional(),
-        imgUrl: Joi.string(),
-        status: Joi.string(),
         deviceType: Joi.string().optional().valid('web', 'android', 'ios'),
-        role: Joi.string().default("user"),
-        countryCode: Joi.string().optional(),
-        phone: Joi.string().optional().custom(phone)
-    }).xor("email","phone")
-};
+        role: Joi.string().valid('superAdmin', 'user', 'admin').default('user'),
+
+      })
+      .or('email', 'phone')
+  };
+
+  const userProfileValidation = {
+    body: Joi.object()
+        .keys({
+            firstName: Joi.string().optional(),
+            lastName: Joi.string().optional(),
+            fullName: Joi.string().optional(),
+            profilePicture: Joi.string().optional(),
+            profileBanner: Joi.string().optional(),
+            userType: Joi.string().required().valid('normal', 'creator'),
+            countryCode: Joi.string().optional(),
+            phone: Joi.string().optional().custom(phone),
+            username: Joi.string().optional(),
+            displayName: Joi.string().optional(),
+            gender: Joi.string().valid('Male', 'Female', 'Other').optional(),
+            ISOCode: Joi.string().optional(),
+            about: Joi.string().optional(),
+            interests: Joi.array().items(Joi.string()).optional(),
+        })
+    };
+
 
 const registerViaPhone = {
     body: Joi.object().keys({
@@ -114,5 +134,6 @@ module.exports = {
     forgotPassword,
     updatePassword,
     resetPassword,
-    socialLogin
+    socialLogin,
+    userProfileValidation
 };

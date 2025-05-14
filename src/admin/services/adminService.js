@@ -2,13 +2,25 @@ const User = require("../../auth/models/user");
 const Post = require("../../socialhype/models/userPost");
 const ApiError = require("../../../utils/ApiError");
 const httpStatus = require("http-status");
+const userService = require("../../auth/services/users");
+
+// <---- User Management Service ----->
 
 exports.getUsersList = async (req, res) => {
     try {
-        const { page = 1, limit = 10 } = req.query;
+        const { page = 1, limit = 10, search = "", userType = "all" } = req.query;
 
-        const users = await User.find()
-            .select("username email gender status createdAt lastActive totalPosts isDisable")
+        const filters = {};
+        if (search) {
+            filters.username = { $regex: search, $options: "i" };
+        }
+
+        if (userType !== "all") {
+            filters.userType = userType;
+        }
+
+        const users = await User.find(filters)
+            .select("username email gender status createdAt lastActive totalPosts isDisable userType")
             .sort({ createdAt: -1 })
             .skip((page - 1) * limit)
             .limit(parseInt(limit));
@@ -16,7 +28,7 @@ exports.getUsersList = async (req, res) => {
         const totalUsers = await User.countDocuments(filters);
 
         if (!users || users.length === 0) {
-            throw new ApiError( "No users found", httpStatus.status.NOT_FOUND);
+            throw new ApiError("No users found", httpStatus.status.NOT_FOUND);
         }
 
         return {
@@ -29,6 +41,7 @@ exports.getUsersList = async (req, res) => {
                 lastActive: user.lastActive,
                 totalPosts: user.totalPosts,
                 accountStatus: user.isDisable ? "isDisable" : "Enabled",
+                userType: user.userType,
             })),
             totalUsers,
             totalPages: Math.ceil(totalUsers / limit),
@@ -59,7 +72,7 @@ exports.addUser = async (req, res) => {
     try {
         const body = req.body;
 
-        const existingUser = await User.findOne({ email: body.email });
+        const existingUser = await userService.get({ email: body.email });
         if (existingUser) {
             throw new ApiError(httpStatus.status.CONFLICT, "A user with this email already exists");
         }
@@ -135,6 +148,8 @@ exports.deleteUser = async (req, res) => {
 //     }
 // }
 
+// <---- Post Management Service ----->
+
 exports.deletePost = async (req, res) => {
     try {
         const { postId } = req.params;
@@ -151,7 +166,7 @@ exports.deletePost = async (req, res) => {
     }
 }
 
-exports.updatePostStatus = async (req, res) => {
+exports.disablePost = async (req, res) => {
     try {
         const { postId } = req.params;
         const { isDisabled } = req.body;
@@ -202,6 +217,8 @@ exports.getAllPosts = async (req, res) => {
         throw new ApiError(`Error fetching posts: ${error.message}`, error.statusCode || httpStatus.status.INTERNAL_SERVER_ERROR);
     }
 }
+
+// <---- Report Management Service ----->
 
 exports.getAllReports = async (req, res) => {
     try {

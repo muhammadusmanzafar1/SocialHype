@@ -29,7 +29,7 @@ const get = async (query) => {
         return getByCondition({ phone: query.phone });
     }
     if (query.username) {
-        return getByCondition({ userName: query.username });
+        return getByCondition({ username: query.username });
     }
     return null;
 };

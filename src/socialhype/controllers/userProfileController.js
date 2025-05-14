@@ -11,7 +11,7 @@ exports.getProfile = async (req, res) => {
     return user;
   } catch (err) {
     throw new ApiError(
-      `Error While Fetching Data: ${err.message}`,
+      `Failed to fetch user profile: ${err.message}`,
       httpStatus.status.INTERNAL_SERVER_ERROR
     );
   }
@@ -39,7 +39,7 @@ exports.editProfile = async (req, res) => {
     return updatedUser;
   } catch (err) {
     throw new ApiError(
-      `Error While Editing Profile Data : ${err.message}`,
+      `An error occurred while updating the profile: ${err.message}`,
       httpStatus.status.INTERNAL_SERVER_ERROR
     );
   }
@@ -62,7 +62,7 @@ exports.registerCreator = async (req, res) => {
     return updatedUser;
   } catch (err) {
     throw new ApiError(
-      `Error While Editing Profile Data : ${err.message}`,
+      `Failed to register user as a creator:${err.message}`,
       httpStatus.status.INTERNAL_SERVER_ERROR
     );
   }
@@ -82,7 +82,7 @@ exports.unregisterAsCreator = async (req, res) => {
     return user;
   } catch (error) {
     throw new ApiError(
-      `Error While Editing Profile Data : ${err.message}`,
+      `An error occurred while removing user as creater:${err.message}`,
       httpStatus.status.INTERNAL_SERVER_ERROR
     );
   }
@@ -108,7 +108,7 @@ exports.changeExclusivePrice = async (req, res) => {
     return user;
   } catch (error) {
     throw new ApiError(
-      `Error While Editing Profile Data : ${err.message}`,
+      `Failed to change exclusive content price:${err.message}`,
       httpStatus.status.INTERNAL_SERVER_ERROR
     );
   }

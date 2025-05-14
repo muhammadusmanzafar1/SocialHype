@@ -1,20 +1,13 @@
 const ApiError = require("../../../utils/ApiError.js");
 const httpStatus = require("http-status");
-const SavedPost = require("../models/savedPost.js");
-
+const taggedPost = require("../models/taggedPost.js");
+const savedPost = require("../models/savedPost.js");
 // Get all saved posts for a user
 export const getSavedPosts = async (req, res) => {
   const { userId } = req.params;
   try {
-    const savedPosts = await SavedPost.find({ userId }).populate({
-      path: "postId",
-      match: { status: { $ne: "deleted" } },
-    });
-
-    // Filter out any null postId (i.e., posts that were deleted)
-    const posts = savedPosts
-      .filter((entry) => entry.postId)
-      .map((entry) => entry.postId);
+    const savedPosts = await savedPost.find({ userId }).populate("postId");
+    const posts = savedPosts.map((entry) => entry.postId);
     return posts;
   } catch (err) {
     throw new ApiError(
@@ -26,18 +19,12 @@ export const getSavedPosts = async (req, res) => {
 
 // Get all posts where the user is tagged
 export const getTaggedPosts = async (req, res) => {
-  const { userId } = req.params;
+  const user = req.user._id;
   try {
-    const taggedPosts = await SavedPost.find({ taggedUserId: userId }).populate(
-      {
-        path: "postId",
-        match: { status: { $ne: "deleted" } }, // exclude deleted posts
-      }
-    );
-
-    const posts = taggedPosts
-      .filter((entry) => entry.postId)
-      .map((entry) => entry.postId);
+    const taggedPosts = await taggedPost
+      .find({ taggedUserId: user })
+      .populate("postId");
+    const posts = taggedPosts.map((entry) => entry.postId);
     return posts;
   } catch (err) {
     throw new ApiError(

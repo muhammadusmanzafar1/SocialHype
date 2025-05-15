@@ -41,7 +41,7 @@ exports.getUsersList = async (req, res) => {
                 status: user.status,
                 createdOn: user.createdAt,
                 lastActive: user.lastActive || "N/A",
-                totalPosts: user.totalPosts,
+                totalPosts: user.postsCount,
                 accountStatus: user.isDisable ? "isDisable" : "Enabled",
                 userType: user.userType,
             })),
@@ -50,6 +50,9 @@ exports.getUsersList = async (req, res) => {
             currentPage: parseInt(page),
         };
     } catch (error) {
+        if (error instanceof ApiError) {
+            throw error;
+        }
         throw new ApiError(`Error fetching users: ${error.message}`, error.statusCode || httpStatus.status.INTERNAL_SERVER_ERROR);
     }
 }

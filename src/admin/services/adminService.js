@@ -120,15 +120,17 @@ exports.updateUser = async (req, res) => {
 exports.updateUserStatus = async (req, res) => {
     try {
         const { userId } = req.params;
-        const {
-            isDisabled
-        } = req.body;
+        const { isDisabled, deleteUser } = req.query;
 
         const user = await User.findById(userId);
         if (!user) {
             throw new ApiError(httpStatus.status.NOT_FOUND, "User not found");
         }
-        user.isDisabled = isDisabled;
+        if (deleteUser) {
+            user.status = "deleted";
+        } else if (isDisabled) {
+            user.isDisabled = isDisabled === "true";
+        }
         await user.save();
 
         return user;

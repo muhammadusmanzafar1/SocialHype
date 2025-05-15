@@ -43,8 +43,18 @@ app.use((req, res, next) => {
 app.use(mongoSanitize());
 
 // enable cors
-app.use(cors());
-app.options('*', cors());
+app.use(cors({
+    origin: 'http://localhost:5173', 
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    credentials: true
+}));
+app.options('*', cors({
+    origin: 'http://localhost:5173', 
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    credentials: true
+}));
 
 //media Uploads
 app.use(upload.any());

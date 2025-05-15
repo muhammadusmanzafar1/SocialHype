@@ -78,6 +78,7 @@ const entitySchema = new mongoose.Schema({
     role: {
         type: String,
         enum: ['superAdmin', 'user', 'admin'],
+        default: 'user',
     },
     isEmailVerified: {
         type: Boolean,

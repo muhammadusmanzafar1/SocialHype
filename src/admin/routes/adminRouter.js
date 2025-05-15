@@ -45,6 +45,18 @@ router.post("/addUser", async (req, res) => {
     }
 });
 
+router.put("/updateUser/:userId", async (req, res) => {
+    try {
+        const user = await adminController.updateUser(req, res);
+        res.status(httpStatus.status.OK).json({ isSuccess: true, message: "User updated successfully", user });
+    } catch (error) {
+        if (error instanceof ApiError) {
+            return res.status(error.statusCode).json({ message: error.message });
+        }
+        return res.status(httpStatus.status.INTERNAL_SERVER_ERROR).json({ message: error.message || "Server Error" });
+    }
+});
+
 router.patch("/changeUserStatus/:userId", async (req, res) => {
     try {
         const user = await adminController.updateUserStatus(req, res);

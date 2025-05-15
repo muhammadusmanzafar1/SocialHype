@@ -18,6 +18,11 @@ exports.addUser = async (req, res) => {
     return retval;
 }
 
+exports.updateUser = async (req, res) => {
+    const retval = await adminService.updateUser(req, res);
+    return retval;
+}
+
 exports.updateUserStatus = async (req, res) => {
     const retval = await adminService.updateUserStatus(req, res);
     return retval;

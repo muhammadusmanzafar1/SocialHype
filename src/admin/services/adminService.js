@@ -34,6 +34,7 @@ exports.getUsersList = async (req, res) => {
         return {
             users: users.map(user => ({
                 username: user.username,
+                fullName: user.fullName,
                 email: user.email,
                 gender: user.gender,
                 status: user.status,
@@ -93,6 +94,24 @@ exports.addUser = async (req, res) => {
         throw new ApiError(`Error adding user: ${error.message}`, error.statusCode || httpStatus.status.INTERNAL_SERVER_ERROR);
     }
 };
+
+exports.updateUser = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const body = req.body;
+
+        const updatedUser = await User.findByIdAndUpdate(userId, body, { new: true });
+        if (!updatedUser) {
+            throw new ApiError("User not found", httpStatus.status.NOT_FOUND);
+        }
+        return updatedUser;
+    } catch (error) {
+        if (error instanceof ApiError) {
+            throw error;
+        }
+        throw new ApiError(`Error updating user: ${error.message}`, error.statusCode || httpStatus.status.INTERNAL_SERVER_ERROR);
+    }
+}
 
 exports.updateUserStatus = async (req, res) => {
     try {

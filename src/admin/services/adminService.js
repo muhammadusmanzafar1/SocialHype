@@ -74,7 +74,7 @@ exports.addUser = async (req, res) => {
 
         const existingUser = await userService.get({ email: body.email });
         if (existingUser) {
-            throw new ApiError(httpStatus.status.CONFLICT, "A user with this email already exists");
+            throw new ApiError("A user with this email already exists", httpStatus.status.CONFLICT);
         }
 
         const model = await User.newEntity(body);

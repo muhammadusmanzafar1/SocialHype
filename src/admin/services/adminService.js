@@ -32,6 +32,7 @@ exports.getUsersList = async (req, res) => {
 
         return {
             users: users.map(user => ({
+                _id: user._id,
                 username: user.username,
                 fullName: user.fullName,
                 email: user.email,

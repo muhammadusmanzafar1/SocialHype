@@ -20,7 +20,6 @@ exports.getUsersList = async (req, res) => {
         }
 
         const users = await User.find(filters)
-            .select("username email gender status createdAt lastActive totalPosts isDisable userType")
             .sort({ createdAt: -1 })
             .skip((page - 1) * limit)
             .limit(parseInt(limit));

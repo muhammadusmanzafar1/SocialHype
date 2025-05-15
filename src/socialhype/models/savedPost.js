@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
 const savedPostSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // Ref to the User model
@@ -6,4 +6,5 @@ const savedPostSchema = new mongoose.Schema({
   taggedUserId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // Ref to the tagged User
 });
 
-export default mongoose.model('SavedPost', savedPostSchema);
+const Entity = mongoose.model('SavedPost', savedPostSchema);
+module.exports = Entity;

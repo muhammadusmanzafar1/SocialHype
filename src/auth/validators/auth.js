@@ -59,8 +59,8 @@ const validateVerifyOTP = {
     body: Joi.object().keys({
         userId: Joi.string().required(),
         activationCode: Joi.string().required(),
-        deviceId: Joi.string().required(),
-        deviceType: Joi.string().required().valid('web', 'android', 'ios')
+        // deviceId: Joi.string().required(),
+        // deviceType: Joi.string().required().valid('web', 'android', 'ios')
     })
 };
 
@@ -80,8 +80,8 @@ const resendOtp = {
     body: Joi.object().keys({
         userId: Joi.string().required(),
         authMethod: Joi.string().required().valid('phone', 'email'),
-        deviceId: Joi.string().required(),
-        deviceType: Joi.string().required().valid('web', 'android', 'ios')
+        // deviceId: Joi.string().required(),
+        // deviceType: Joi.string().required().valid('web', 'android', 'ios')
     })
 };
 

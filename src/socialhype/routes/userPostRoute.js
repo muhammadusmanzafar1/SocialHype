@@ -43,4 +43,6 @@ router.get(" /api/posts/tagged/:userId", async (req, res) => {
         .json("Something went wrong!");
     }
   });
+
+module.exports = router;
   

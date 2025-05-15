@@ -2,8 +2,10 @@ const express = require("express");
 const router = express.Router();
 const httpStatus = require("http-status");
 const ApiError = require('../../../utils/ApiError');
-const { registerUser, verifyOTP, login, registerViaPhone, userProfile, forgotPassword, updatePassword, resetPassword, logout } = require('../controllers/authController')
-const { registerViaEmail, validateVerifyOTP, loginVerify, registerViaPhone: registerViaPhones, userProfileValidation } = require("../validators/auth");
+const { registerUser, verifyOTP, login, registerViaPhone, userProfile, resendOTP, forgotPassword, updatePassword, resetPassword, logout } = require('../controllers/authController')
+const { registerViaEmail, validateVerifyOTP, loginVerify, registerViaPhone: registerViaPhones, userProfileValidation, resendOtp, forgotPassword: forgetPass,
+    updatePassword: updatePass, resetPassword: resetPass 
+ } = require("../validators/auth");
 
 // RegisterWithEmail
 router.post("/register/email", async (req, res) => {
@@ -122,7 +124,7 @@ router.post("/login", async (req, res) => {
 
 //Resend OTP
 router.post("/resendOTP", async (req, res) => {
-    const { error, value } = validateResendOTP.body.validate(req.body, { abortEarly: false });
+    const { error, value } = resendOtp.body.validate(req.body, { abortEarly: false });
     if (error) {
         return res.status(httpStatus.status.BAD_REQUEST).json({
             message: "Validation Error",
@@ -142,7 +144,7 @@ router.post("/resendOTP", async (req, res) => {
 });
 
 router.post('/forgotPassword', async (req, res) => {
-    const { error, value } = forgotPassword.body.validate(req.body, { abortEarly: false });
+    const { error, value } = forgetPass.body.validate(req.body, { abortEarly: false });
     if (error) {
         return res.status(httpStatus.status.BAD_REQUEST).json({
             message: "Validation Error",
@@ -163,7 +165,7 @@ router.post('/forgotPassword', async (req, res) => {
 );
 
 router.put('/updatePassword/:id', async (req, res) => {
-    const { error, value } = updatePassword.body.validate(req.body, { abortEarly: false });
+    const { error, value } = updatePass.body.validate(req.body, { abortEarly: false });
     if (error) {
         return res.status(httpStatus.status.BAD_REQUEST).json({
             message: "Validation Error",
@@ -184,7 +186,7 @@ router.put('/updatePassword/:id', async (req, res) => {
 );
 
 router.put('/resetPassword/:id', async (req, res) => {
-    const { error, value } = resetPassword.body.validate(req.body, { abortEarly: false });
+    const { error, value } = resetPass.body.validate(req.body, { abortEarly: false });
     if (error) {
         return res.status(httpStatus.status.BAD_REQUEST).json({
             message: "Validation Error",

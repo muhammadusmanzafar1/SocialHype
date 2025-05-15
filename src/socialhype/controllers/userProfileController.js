@@ -6,8 +6,8 @@ const User = require("../../../src/auth/models/user.js");
 exports.getProfile = async (req, res) => {
   const { userId } = req.params;
   try {
-    const user = await User.findById(userId).select("-__v");
-    if (!user) throw new ApiError("User Not Found!", 404);
+    const user = await User.findById(userId);
+    if (!user) throw new ApiError("User Not Found!", httpStatus.status.NOT_FOUND);
     return user;
   } catch (err) {
     throw new ApiError(

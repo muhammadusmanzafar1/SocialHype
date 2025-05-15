@@ -197,23 +197,29 @@ const validateUser = async (user) => {
 };
 
 const userProfile = async (body, userId) => {
-     const user = await userService.get(userId);
-     const { username, display} = body;
-     
-     if (user.status === 'pending') {
-          throw new ApiError(
-               'This user is not verified yet!',
-               httpStatus.status.UNAUTHORIZED
-          );
+     const { username} = body;
+
+     if (!userId) {
+          throw new ApiError('User ID is required', httpStatus.status.BAD_REQUEST);
      }
+     const user = await userService.get(userId);
+
+     if (!user) {
+          throw new ApiError('User not found', httpStatus.status.NOT_FOUND);
+     }
+
      if (username) {
           const existingUser = await userService.get({ username });
           if (existingUser && existingUser._id.toString() !== userId) {
                throw new ApiError('Username already exists', httpStatus.status.BAD_REQUEST);
           }
      }
-     if (!user) {
-          throw new ApiError('User not found', httpStatus.status.NOT_FOUND);
+     
+     if (user.status === 'pending') {
+          throw new ApiError(
+               'This user is not verified yet!',
+               httpStatus.status.UNAUTHORIZED
+          );
      }
 
      // Update user profile fields
@@ -225,6 +231,30 @@ const userProfile = async (body, userId) => {
 
      return await user.save();
 };
+
+const resendOTP = async (body) => {
+     const { userId } = body;
+     const user = await userService.get(userId);
+
+     if (!user) {
+          throw new ApiError('User not found', httpStatus.UNAUTHORIZED);
+     }
+     user.activationCode = utils.randomPin();
+     if (user.authMethod === 'email') {
+          !user.isEmailVerified
+               ? await email.sendOTPonEmail(user.email, user.activationCode)
+               : await email.sendForgotOTP(user.email, user.activationCode);
+     } else {
+          !user.isPhoneVerified
+               ? await email.PhoneVerificationOTP(
+                      user.phone,
+                      user.activationCode
+                 )
+               : await email.PhoneForgotOTP(user.phone, user.activationCode);
+     }
+
+     return await user.save();
+}
 
 const forgotPassword = async (body) => {
      let user;
@@ -299,6 +329,7 @@ module.exports = {
      login,
      userProfile,
      forgotPassword,
+     resendOTP,
      updatePassword,
      resetPassword,
      logout

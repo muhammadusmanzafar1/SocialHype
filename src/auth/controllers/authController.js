@@ -74,6 +74,11 @@ exports.forgotPassword = asyncHandler(async (req, res) => {
     return user;
 });
 
+exports.resendOTP = asyncHandler(async (req, res) => {
+    let user = await authService.resendOTP(req.body);
+    return user;
+});
+
 exports.updatePassword = asyncHandler(async (req, res) => {
     let user = await authService.updatePassword( req.params.id, req.body);
     return user;

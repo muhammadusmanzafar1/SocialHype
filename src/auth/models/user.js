@@ -74,6 +74,7 @@ const entitySchema = new mongoose.Schema({
     ISOCode: String,
     activationCode: String,
     password: String,
+    phoneNumber: Number,
     role: {
         type: String,
         enum: ['superAdmin', 'user', 'admin'],
@@ -118,17 +119,18 @@ const entitySchema = new mongoose.Schema({
 
 entitySchema.statics.newEntity = async function (body, createdByAdmin = true) {
     const model = {
-        // username: body.username || (body.firstName ? `${body.firstName}_${utils.generateRandomAlphaNumeric()}` : utils.generateRandomAlphaNumeric()),
+        username: body.username,
         // displayName: body.displayName || (body.firstName && body.lastName ? `${body.firstName} ${body.lastName}` : null),
         // firstName: body.firstName,
         // lastName: body.lastName,
-        // fullName: body.firstName && body.lastName ? `${body.firstName} ${body.lastName}` : null,
+        fullName: body.fullName, 
         email: body.email,
+        phoneNumber: body.phoneNumber,
         // phone: body.phone,
-        // gender: body.gender,
+        gender: body.gender,
         // profilePicture: body.profilePicture || null,
         // profileBanner: body.profileBanner || null,
-        // userType: body.userType || 'normal',
+        userType: body.userType || 'normal',
         authMethod: body.authMethod,
         // ISOCode: body.ISOCode,
         // countryCode: body.countryCode,

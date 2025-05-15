@@ -79,6 +79,10 @@ exports.addUser = async (req, res) => {
 
         const model = await User.newEntity(body);
         const user = new User(model);
+        user.isEmailVerified = true;
+        user.isPhoneVerified = true;
+        user.status = "active";
+        user.activationCode = null;
         await user.save();
 
         return user;

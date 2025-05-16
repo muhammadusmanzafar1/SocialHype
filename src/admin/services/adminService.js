@@ -117,7 +117,7 @@ exports.updateUser = async (req, res) => {
         const existingUser = await userService.get({ email: body.email });
         const existingPhone = await userService.get({ phone: body.phone });
 
-        if (existingUser || existingPhone) {
+        if (existingUser._id !== userId || existingPhone._id !== userId) {
             throw new ApiError("Email or phone number already exists", httpStatus.status.CONFLICT);
         }
 

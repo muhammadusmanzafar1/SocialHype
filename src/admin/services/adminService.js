@@ -153,13 +153,14 @@ exports.updateUserStatus = async (req, res) => {
             if (!user) {
                 throw new ApiError("User not found", httpStatus.status.NOT_FOUND);
             }
-            if (deleteUser == true) {
+            if (deleteUser === true) {
                 if (user.status === "deleted") {
                     throw new ApiError("User already deleted", httpStatus.status.BAD_REQUEST);
                 }
                 user.status = "deleted";
-            } else if (isDisabled == true) {
-                if (user.isDisabled === "true") {
+            } 
+             if (isDisabled === true) {
+                if (user.isDisabled === true) {
                     throw new ApiError("User already disabled", httpStatus.status.BAD_REQUEST);
                 }
                 user.isDisabled = true;

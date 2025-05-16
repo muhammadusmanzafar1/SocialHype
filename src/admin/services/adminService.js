@@ -87,8 +87,8 @@ exports.addUser = async (req, res) => {
         const body = req.body;
 
         const existingUser = await userService.get({ email: body.email });
-        if (existingUser) {
-            throw new ApiError("A user with this email already exists", httpStatus.status.CONFLICT);
+        if (existingUser || existingUser.phone === body.phone) {
+            throw new ApiError("A user with this email or phone already exists", httpStatus.status.CONFLICT);
         }
 
         const model = await User.newEntity(body);
@@ -112,6 +112,12 @@ exports.updateUser = async (req, res) => {
     try {
         const { userId } = req.params;
         const body = req.body;
+
+        const user = await User.findById(userId);
+
+        if (user.email === body.email || user.phone === body.phone) {
+            throw new ApiError("Email or phone number already exists", httpStatus.status.CONFLICT);
+        }
 
         const updatedUser = await User.findByIdAndUpdate(userId, body, { new: true });
         if (!updatedUser) {

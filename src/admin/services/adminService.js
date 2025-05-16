@@ -1,5 +1,6 @@
 const User = require("../../auth/models/user");
 const Post = require("../../socialhype/models/userPost");
+const userService = require("../../auth/services/users");
 const PostReport = require("../../socialhype/models/postReport");
 const ApiError = require("../../../utils/ApiError");
 const httpStatus = require("http-status");
@@ -114,9 +115,10 @@ exports.updateUser = async (req, res) => {
         const { userId } = req.params;
         const body = req.body;
 
-        const user = await User.findById(userId);
+        const existingUser = await userService.get({ email: body.email });
+        const existingPhone = await userService.get({ phone: body.phone });
 
-        if (user.email === body.email || user.phone === body.phone) {
+        if (existingUser || existingPhone) {
             throw new ApiError("Email or phone number already exists", httpStatus.status.CONFLICT);
         }
 

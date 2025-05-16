@@ -138,7 +138,7 @@ router.put("/disablePost/:postId", async (req, res) => {
 
 // <---- Report Management ----->
 
-router.get("/getAllReports", async (req, res) => {
+router.get("/getAllReports/:userId", async (req, res) => {
     try {
         const reports = await adminController.getAllReports(req, res);
         res.status(httpStatus.status.OK).json({ isSuccess: true, message: "Reports fetched successfully", reports });

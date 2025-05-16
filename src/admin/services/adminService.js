@@ -1,5 +1,6 @@
 const User = require("../../auth/models/user");
 const Post = require("../../socialhype/models/userPost");
+const PostReport = require("../../socialhype/models/postReport");
 const ApiError = require("../../../utils/ApiError");
 const httpStatus = require("http-status");
 const userService = require("../../auth/services/users");
@@ -233,7 +234,7 @@ exports.disablePost = async (req, res) => {
         if (!post) {
             throw new ApiError( "No posts found", httpStatus.status.NOT_FOUND);
         }
-        post.isDisabled = false;
+        post.isDisabled = true;
         await post.save();
         return post;
     }
@@ -251,7 +252,6 @@ exports.getAllPosts = async (req, res) => {
         const { page = 1, limit = 10 } = req.query;
 
         const posts = await Post.find({userId: userId})
-            .select("_id title content createdAt userId isDisabled")
             .sort({ createdAt: -1 })
             .skip((page - 1) * limit)
             .limit(parseInt(limit));
@@ -282,28 +282,24 @@ exports.getAllReports = async (req, res) => {
         const { userId } = req.params;
         const { page = 1, limit = 10 } = req.query;
 
-        const reports = await Report.find({userId: userId})
-            .select("post reportedBy reason details status createdAt reviewedAt")
+        const reports = await PostReport.find({userId: userId})
+            .populate("postedBy", "username email")
+            .populate("post", "title content")
+            .populate("reportedBy", "username email")
             .sort({ createdAt: -1 })
             .skip((page - 1) * limit)
             .limit(parseInt(limit));
 
-        const totalReports = await Report.countDocuments();
+        const totalReports = await PostReport.countDocuments();
 
         if (!reports || reports.length === 0) {
             throw new ApiError( "No reports found", httpStatus.status.NOT_FOUND);
         }
 
         return {
-            reports: reports.map(report => ({
-                post: report.post,
-                reportedBy: report.reportedBy,
-                reason: report.reason,
-                details: report.details,
-                status: report.status,
-                createdOn: report.createdAt,
-                reviewedOn: report.reviewedAt,
-            })),
+            reports: {
+                reports
+            },
             totalReports,
             totalPages: Math.ceil(totalReports / limit),
             currentPage: parseInt(page),

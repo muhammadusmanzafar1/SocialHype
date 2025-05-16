@@ -24,7 +24,7 @@ const entitySchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['pending', 'active', 'deleted', 'blocked'],
+        enum: ['pending', 'active', 'deleted', 'blocked', 'disabled'],
         default: 'pending',
     },
     userType: {
@@ -43,10 +43,6 @@ const entitySchema = new mongoose.Schema({
     postReports: {
         type: [mongoose.Schema.Types.ObjectId],
         ref: "post",
-    },
-    isDisabled: {
-        type: Boolean,
-        default: false,
     },
     profilePicture: String,
     profileBanner: String,

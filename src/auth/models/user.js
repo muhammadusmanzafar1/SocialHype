@@ -72,7 +72,6 @@ const entitySchema = new mongoose.Schema({
     ISOCode: String,
     activationCode: String,
     password: String,
-    phoneNumber: Number,
     role: {
         type: String,
         enum: ['superAdmin', 'user', 'admin'],
@@ -124,8 +123,7 @@ entitySchema.statics.newEntity = async function (body, createdByAdmin = true) {
         // lastName: body.lastName,
         fullName: body.fullName, 
         email: body.email,
-        phoneNumber: body.phoneNumber,
-        // phone: body.phone,
+        phone: body.phone,
         gender: body.gender,
         // profilePicture: body.profilePicture || null,
         // profileBanner: body.profileBanner || null,

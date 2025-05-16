@@ -64,10 +64,10 @@ exports.getUserDetails = async (req, res) => {
 
         const user = await User.findById(userId)
             .select("-password -__v")
-            .populate("joinedCommunity", "name description")
-            .populate("accountReports", "username email")
-            .populate("postReports", "title content")
-            .populate("userPlan", "planName planDetails");
+            // .populate("joinedCommunity", "name description")
+            // .populate("accountReports", "username email")
+            // .populate("postReports", "title content")
+            // .populate("userPlan", "planName planDetails");
 
         if (!user) {
             throw new ApiError("User not found", httpStatus.status.NOT_FOUND);
@@ -283,9 +283,9 @@ exports.getAllReports = async (req, res) => {
         const { page = 1, limit = 10 } = req.query;
 
         const reports = await PostReport.find({userId: userId})
-            .populate("postedBy", "username email")
-            .populate("post", "title content")
-            .populate("reportedBy", "username email")
+            // .populate("postedBy", "username email")
+            // .populate("post", "title content")
+            // .populate("reportedBy", "username email")
             .sort({ createdAt: -1 })
             .skip((page - 1) * limit)
             .limit(parseInt(limit));

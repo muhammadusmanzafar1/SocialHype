@@ -12,7 +12,7 @@ exports.getUsersList = async (req, res) => {
     try {
         const { page = 1, limit = 10, search = "", userType = "all" } = req.query;
 
-        const filters = {};
+        const filters = { status: { $ne: "deleted" } };
         if (search) {
             filters.username = { $regex: search, $options: "i" };
         }
@@ -141,8 +141,7 @@ exports.updateUser = async (req, res) => {
 exports.updateUserStatus = async (req, res) => {
     try {
         const { userId } = req.body;
-        const isDisableFlag = req.query.isDisabled === "true";
-        const deleteUserFlag = req.query.deleteUser === "true";
+        const status = req.query.status;
 
         if (!Array.isArray(userId) || userId.length === 0) {
             throw new ApiError("User ID list is empty or not an array", httpStatus.status.BAD_REQUEST);
@@ -155,18 +154,30 @@ exports.updateUserStatus = async (req, res) => {
                 throw new ApiError("User not found", httpStatus.status.NOT_FOUND);
             }
 
-            if (deleteUserFlag) {
-                if (user.status === "deleted") {
-                    throw new ApiError("User already deleted", httpStatus.status.BAD_REQUEST);
-                }
-                user.status = "deleted";
-            }
-
-            if (isDisableFlag) {
-                if (user.isDisabled === true) {
-                    throw new ApiError("User already disabled", httpStatus.status.BAD_REQUEST);
-                }
-                user.isDisabled = true;
+            switch (status) {
+                case "active":
+                    if (user.status === "deleted") {
+                        throw new ApiError("User is deleted", httpStatus.status.BAD_REQUEST);
+                    }
+                    user.status = "active";
+                    break;
+                case "deleted":
+                    user.status = "deleted";
+                    break;
+                case "disabled":
+                    if (user.status === "deleted") {
+                        throw new ApiError("User is deleted", httpStatus.status.BAD_REQUEST);
+                    }
+                    user.status = "disabled";
+                    break;
+                case "blocked":
+                    if (user.status === "deleted") {
+                        throw new ApiError("User is deleted", httpStatus.status.BAD_REQUEST);
+                    }
+                    user.status = "blocked";
+                    break;
+                default:
+                    throw new ApiError("Invalid status", httpStatus.status.BAD_REQUEST);
             }
 
             await user.save();

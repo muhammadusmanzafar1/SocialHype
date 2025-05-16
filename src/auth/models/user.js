@@ -8,8 +8,6 @@ const genders = ['Male', 'Female', 'Other'];
 const entitySchema = new mongoose.Schema({
     username: String,
     displayName: String,
-    firstName: String,
-    lastName: String,
     fullName: String,
     email: {
         type: String,

@@ -61,7 +61,12 @@ exports.getUserDetails = async (req, res) => {
     try {
         const { userId } = req.params;
 
-        const user = await User.findById(userId);
+        const user = await User.findById(userId)
+            .select("-password -__v")
+            .populate("joinedCommunity", "name description")
+            .populate("accountReports", "username email")
+            .populate("postReports", "title content")
+            .populate("userPlan", "planName planDetails");
 
         if (!user) {
             throw new ApiError("User not found", httpStatus.status.NOT_FOUND);
@@ -69,6 +74,9 @@ exports.getUserDetails = async (req, res) => {
 
         return user;
     } catch (error) {
+        if (error instanceof ApiError) {
+            throw error;
+        }
         throw new ApiError(`Error fetching user detail: ${error.message}`, error.statusCode || httpStatus.status.INTERNAL_SERVER_ERROR);
     }
 };
@@ -135,6 +143,9 @@ exports.updateUserStatus = async (req, res) => {
 
         return user;
     } catch (error) {
+        if (error instanceof ApiError) {
+            throw error;
+        }
         throw new ApiError(`Error updating user: ${error.message}`, error.statusCode || httpStatus.status.INTERNAL_SERVER_ERROR);
     }
 }
@@ -185,12 +196,15 @@ exports.deletePost = async (req, res) => {
 
         const post = await Post.findById(postId);
         if (!post) {
-            throw new ApiError(httpStatus.status.NOT_FOUND, "Post not found");
+            throw new ApiError( "No posts found", httpStatus.status.NOT_FOUND);
         }
         await post.remove();
         return post;
     }
     catch (error) {
+        if (error instanceof ApiError) {
+            throw error;
+        }
         throw new ApiError(`Error deleting post: ${error.message}`, error.statusCode || httpStatus.status.INTERNAL_SERVER_ERROR);
     }
 }
@@ -198,17 +212,19 @@ exports.deletePost = async (req, res) => {
 exports.disablePost = async (req, res) => {
     try {
         const { postId } = req.params;
-        const { isDisabled } = req.body;
 
         const post = await Post.findById(postId);
         if (!post) {
-            throw new ApiError(httpStatus.status.NOT_FOUND, "Post not found");
+            throw new ApiError( "No posts found", httpStatus.status.NOT_FOUND);
         }
-        post.isDisabled = isDisabled;
+        post.isDisabled = false;
         await post.save();
         return post;
     }
     catch (error) {
+        if (error instanceof ApiError) {
+            throw error;
+        }
         throw new ApiError(`Error updating post status: ${error.message}`, error.statusCode || httpStatus.status.INTERNAL_SERVER_ERROR);
     }
 }
@@ -219,30 +235,26 @@ exports.getAllPosts = async (req, res) => {
         const { page = 1, limit = 10 } = req.query;
 
         const posts = await Post.find({userId: userId})
-            .select("title content createdAt userId isDisabled")
+            .select("_id title content createdAt userId isDisabled")
             .sort({ createdAt: -1 })
             .skip((page - 1) * limit)
             .limit(parseInt(limit));
-
+            
+            if (!posts || posts.length === 0) {
+                throw new ApiError( "No posts found", httpStatus.status.NOT_FOUND);
+            }
         const totalPosts = await Post.countDocuments();
 
-        if (!posts || posts.length === 0) {
-            throw new ApiError(httpStatus.status.NOT_FOUND, "No posts found");
-        }
-
         return {
-            posts: posts.map(post => ({
-                title: post.title,
-                content: post.content,
-                createdOn: post.createdAt,
-                userId: post.userId,
-                isDisabled: post.isDisabled,
-            })),
+            posts,
             totalPosts,
             totalPages: Math.ceil(totalPosts / limit),
             currentPage: parseInt(page),
         };
     } catch (error) {
+        if (error instanceof ApiError) {
+            throw error;
+        }
         throw new ApiError(`Error fetching posts: ${error.message}`, error.statusCode || httpStatus.status.INTERNAL_SERVER_ERROR);
     }
 }
@@ -281,6 +293,9 @@ exports.getAllReports = async (req, res) => {
             currentPage: parseInt(page),
         };
     } catch (error) {
+        if (error instanceof ApiError) {
+            throw error;
+        }
         throw new ApiError(`Error fetching reports: ${error.message}`, error.statusCode || httpStatus.status.INTERNAL_SERVER_ERROR);
     }
 }

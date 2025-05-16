@@ -100,7 +100,7 @@ router.delete("/deleteUser/:userId", async (req, res) => {
 
 //  <---- Post Management ----->
 
-router.get("/getAllPosts", async (req, res) => {
+router.get("/getAllPosts/:userId", async (req, res) => {
     try {
         const posts = await adminController.getAllPosts(req, res);
         res.status(httpStatus.status.OK).json({ isSuccess: true, message: "Posts fetched successfully", posts });

@@ -57,7 +57,7 @@ router.put("/updateUser/:userId", async (req, res) => {
     }
 });
 
-router.patch("/changeUserStatus/:userId", async (req, res) => {
+router.patch("/changeUserStatus", async (req, res) => {
     try {
         const user = await adminController.updateUserStatus(req, res);
         res.status(httpStatus.status.OK).json({

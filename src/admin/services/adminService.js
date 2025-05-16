@@ -127,21 +127,37 @@ exports.updateUser = async (req, res) => {
 
 exports.updateUserStatus = async (req, res) => {
     try {
-        const { userId } = req.params;
+        const { userId } = req.body;
         const { isDisabled, deleteUser } = req.query;
 
-        const user = await User.findById(userId);
-        if (!user) {
-            throw new ApiError(httpStatus.status.NOT_FOUND, "User not found");
+        if (!Array.isArray(userId) || userId.length === 0) {
+            throw new ApiError("User ID list is empty or not an array", httpStatus.status.BAD_REQUEST);
         }
-        if (deleteUser) {
-            user.status = "deleted";
-        } else if (isDisabled) {
-            user.isDisabled = isDisabled === "true";
-        }
-        await user.save();
 
-        return user;
+        let result = [];
+        for (const id of userId) {
+            const user = await User.findById(id);
+            if (!user) {
+                throw new ApiError("User not found", httpStatus.status.NOT_FOUND);
+            }
+            if (deleteUser) {
+                if (user.status === "deleted") {
+                    throw new ApiError("User already deleted", httpStatus.status.BAD_REQUEST);
+                }
+                user.status = "deleted";
+            } else if (isDisabled) {
+                if (user.isDisabled === "true") {
+                    throw new ApiError("User already disabled", httpStatus.status.BAD_REQUEST);
+                }
+                user.isDisabled = true;
+            }
+            await user.save();
+            result.push({id, status: "Updated Successfully"});
+        }
+
+        return {
+            data: result,
+        }
     } catch (error) {
         if (error instanceof ApiError) {
             throw error;

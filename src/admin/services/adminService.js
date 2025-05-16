@@ -87,7 +87,8 @@ exports.addUser = async (req, res) => {
         const body = req.body;
 
         const existingUser = await userService.get({ email: body.email });
-        if (existingUser || existingUser.phone === body.phone) {
+        const existingPhone = await userService.get({ phone: body.phone });
+        if (existingUser || existingPhone) {
             throw new ApiError("A user with this email or phone already exists", httpStatus.status.CONFLICT);
         }
 

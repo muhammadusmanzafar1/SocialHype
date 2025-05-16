@@ -141,7 +141,8 @@ exports.updateUser = async (req, res) => {
 exports.updateUserStatus = async (req, res) => {
     try {
         const { userId } = req.body;
-        const { isDisabled, deleteUser } = req.query;
+        const isDisableFlag = req.query.isDisabled === "true";
+        const deleteUserFlag = req.query.deleteUser === "true";
 
         if (!Array.isArray(userId) || userId.length === 0) {
             throw new ApiError("User ID list is empty or not an array", httpStatus.status.BAD_REQUEST);
@@ -153,32 +154,34 @@ exports.updateUserStatus = async (req, res) => {
             if (!user) {
                 throw new ApiError("User not found", httpStatus.status.NOT_FOUND);
             }
-            if (deleteUser === true) {
+
+            if (deleteUserFlag) {
                 if (user.status === "deleted") {
                     throw new ApiError("User already deleted", httpStatus.status.BAD_REQUEST);
                 }
                 user.status = "deleted";
-            } 
-             if (isDisabled === true) {
+            }
+
+            if (isDisableFlag) {
                 if (user.isDisabled === true) {
                     throw new ApiError("User already disabled", httpStatus.status.BAD_REQUEST);
                 }
                 user.isDisabled = true;
             }
+
             await user.save();
-            result.push({id, status: "Updated Successfully"});
+            result.push({ id, status: "Updated Successfully" });
         }
 
-        return {
-            data: result,
-        }
+        return { data: result };
     } catch (error) {
         if (error instanceof ApiError) {
             throw error;
         }
         throw new ApiError(`Error updating user: ${error.message}`, error.statusCode || httpStatus.status.INTERNAL_SERVER_ERROR);
     }
-}
+};
+
 
 exports.deleteUser = async (req, res) => {
     try {

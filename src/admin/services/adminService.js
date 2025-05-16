@@ -121,7 +121,7 @@ exports.updateUser = async (req, res) => {
         console.log(existingUser, existingPhone, userId);
         
 
-        if (existingUser._id.toString() !== userId || existingPhone._id.toString() !== userId) {
+        if ((existingUser && existingUser._id.toString() !== userId) || (existingPhone && existingPhone._id.toString() !== userId)) {
             throw new ApiError("Email or phone number already exists", httpStatus.status.CONFLICT);
         }
 

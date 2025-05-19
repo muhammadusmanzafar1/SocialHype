@@ -279,6 +279,7 @@ exports.getAllPosts = async (req, res) => {
         const { page = 1, limit = 10 } = req.query;
 
         const posts = await Post.find({author: userId})
+            .populate("author", "username email profilePicture")
             .sort({ createdAt: -1 })
             .skip((page - 1) * limit)
             .limit(parseInt(limit));

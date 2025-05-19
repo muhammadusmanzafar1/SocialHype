@@ -234,15 +234,15 @@ exports.deleteUser = async (req, res) => {
 
 // <---- Post Management Service ----->
 
-exports.deletePost = async (req, res) => {
+exports.deletePost = async (req) => {
     try {
         const { postId } = req.params;
 
         const post = await Post.findById(postId);
         if (!post) {
-            throw new ApiError( "No posts found", httpStatus.status.NOT_FOUND);
+            throw new ApiError("No posts found", httpStatus.status.NOT_FOUND);
         }
-        await post.remove();
+        await Post.deleteOne({ _id: postId });
         return post;
     }
     catch (error) {

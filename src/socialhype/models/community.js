@@ -16,8 +16,8 @@ const communitySchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['active', 'inactive', 'deleted', 'disabled'],
-        default: 'active',
+        enum: ['pending', 'active', 'inactive', 'deleted', 'disabled', 'rejected'],
+        default: 'pending',
     },
     avatarUrl: {
         type: String,

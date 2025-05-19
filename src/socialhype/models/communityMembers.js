@@ -11,6 +11,10 @@ const communitySchema = new mongoose.Schema({
         ref: 'User',
         required: true,
     },
+    isDisabled: {
+        type: Boolean,
+        default: false,
+    },
     joinedAt: {
         type: Date,
         default: Date.now,

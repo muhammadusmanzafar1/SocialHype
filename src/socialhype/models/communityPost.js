@@ -21,6 +21,7 @@ const communitySchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
     }],
+    //Ref will be added later of the comment model
     comments: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',

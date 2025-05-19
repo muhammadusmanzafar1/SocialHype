@@ -6,6 +6,11 @@ const communitySchema = new mongoose.Schema({
         ref: 'Post',
         required: true
     },
+    communityId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Community',
+        required: true
+    },
     reportedBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',

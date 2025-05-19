@@ -270,7 +270,7 @@ exports.disablePost = async (req, res) => {
         if (!post) {
             throw new ApiError( "No posts found", httpStatus.status.NOT_FOUND);
         }
-        post.isDisabled = true;
+        post.status = "disabled";
         await post.save();
         return post;
     }

@@ -44,6 +44,10 @@ const PostSchema = new mongoose.Schema({
     enum: ['Public', 'Friends', 'Private', 'Restricted', 'deleted'],
     default: 'Public',
   },
+  isDisabled: {
+    type: Boolean,
+    default: false,
+  },
 
   reports: {
     type: [

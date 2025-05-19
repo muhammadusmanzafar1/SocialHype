@@ -2,6 +2,8 @@ const User = require("../../auth/models/user");
 const Post = require("../../socialhype/models/userPost");
 const PostReport = require("../../socialhype/models/postReport");
 const ApiError = require("../../../utils/ApiError");
+const SavedPost = require("../../socialhype/models/savedPost");
+const TaggedPost = require("../../socialhype/models/taggedPost");
 const httpStatus = require("http-status");
 const userService = require("../../auth/services/users");
 const { log } = require("winston");
@@ -242,16 +244,23 @@ exports.deletePost = async (req) => {
         if (!post) {
             throw new ApiError("No posts found", httpStatus.status.NOT_FOUND);
         }
+
         await Post.deleteOne({ _id: postId });
+
+        await PostReport.deleteMany({ post: postId });
+
+        await SavedPost.deleteMany({ postId });
+
+        await TaggedPost.deleteMany({ postId });
+
         return post;
-    }
-    catch (error) {
+    } catch (error) {
         if (error instanceof ApiError) {
             throw error;
         }
         throw new ApiError(`Error deleting post: ${error.message}`, error.statusCode || httpStatus.status.INTERNAL_SERVER_ERROR);
     }
-}
+};
 
 exports.disablePost = async (req, res) => {
     try {

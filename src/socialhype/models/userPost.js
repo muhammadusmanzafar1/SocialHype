@@ -53,7 +53,7 @@ const PostSchema = new mongoose.Schema({
   reports: {
     type: [
       {
-        user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        user: { type: mongoose.Schema.Types.ObjectId, ref: 'PostReport' },
         createdAt: { type: Date, default: Date.now },
       },
     ],

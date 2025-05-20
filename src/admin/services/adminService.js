@@ -319,24 +319,20 @@ exports.getAllReports = async (req, res) => {
         const { userId } = req.params;
         const { page = 1, limit = 10 } = req.query;
 
-        const reports = await PostReport.find({postedBy: userId})
-            .populate("postedBy")
-            .populate("post")
-            .populate("reportedBy")
+        const reports = await Post.find({ author: userId, "reports": { $exists: true, $ne: [] } })
+            .populate("reports.user")
             .sort({ createdAt: -1 })
             .skip((page - 1) * limit)
             .limit(parseInt(limit));
 
-        const totalReports = await PostReport.countDocuments();
+        const totalReports = await PostReport.countDocuments({ post: { $in: reports.map(post => post._id) } });
 
         if (!reports || reports.length === 0) {
-            throw new ApiError( "No reports found", httpStatus.status.NOT_FOUND);
+            throw new ApiError("No reports found", httpStatus.status.NOT_FOUND);
         }
 
         return {
-            reports: {
-                reports
-            },
+            reports,
             totalReports,
             totalPages: Math.ceil(totalReports / limit),
             currentPage: parseInt(page),

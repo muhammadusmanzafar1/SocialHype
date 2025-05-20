@@ -319,10 +319,10 @@ exports.getAllReports = async (req, res) => {
         const { userId } = req.params;
         const { page = 1, limit = 10 } = req.query;
 
-        const reports = await PostReport.find({userId: userId})
-            // .populate("postedBy", "username email")
-            // .populate("post", "title content")
-            // .populate("reportedBy", "username email")
+        const reports = await PostReport.find({postedBy: userId})
+            .populate("postedBy", "username email")
+            .populate("post", "title content")
+            .populate("reportedBy", "username email")
             .sort({ createdAt: -1 })
             .skip((page - 1) * limit)
             .limit(parseInt(limit));

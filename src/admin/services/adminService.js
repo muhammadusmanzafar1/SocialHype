@@ -320,6 +320,7 @@ exports.getAllReports = async (req, res) => {
         const { page = 1, limit = 10 } = req.query;
 
         const reports = await Post.find({ author: userId, "reports": { $exists: true, $ne: [] } })
+            .populate("author")
             .populate("reports.user")
             .sort({ createdAt: -1 })
             .skip((page - 1) * limit)

@@ -266,12 +266,10 @@ exports.disablePost = async (req, res) => {
     try {
         const { postId } = req.params;
 
-        const post = await Post.findById(postId);
+        const post = await Post.findByIdAndUpdate(postId, { status: "disabled" }, { new: true });
         if (!post) {
             throw new ApiError( "No posts found", httpStatus.status.NOT_FOUND);
         }
-        post.status = "disabled";
-        await post.save();
         return post;
     }
     catch (error) {

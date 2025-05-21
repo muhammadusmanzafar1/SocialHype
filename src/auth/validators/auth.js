@@ -32,7 +32,7 @@ const registerViaEmail = {
             profileBanner: Joi.string().optional(),
             userType: Joi.string().required().valid('normal', 'creator'),
             countryCode: Joi.string().optional(),
-            phone: Joi.string().optional().custom(phone),
+            phone: Joi.string().optional(),
             username: Joi.string().optional(),
             displayName: Joi.string().optional(),
             gender: Joi.string().valid('Male', 'Female', 'Other').optional(),

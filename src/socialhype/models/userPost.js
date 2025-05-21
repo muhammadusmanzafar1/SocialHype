@@ -20,6 +20,18 @@ const PostSchema = new mongoose.Schema({
     ref: 'User',
     required: true,
   },
+  isHypeChallenge: {
+    type: Boolean,
+    default: false
+  },
+  challengeId : {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'HypeChallenge',
+  },
+  votes: {
+    type: Number,
+    default: 0
+  },
   likes: {
     type: [mongoose.Schema.Types.ObjectId],
     ref: 'User',
@@ -35,10 +47,14 @@ const PostSchema = new mongoose.Schema({
     ],
     default: [],
   },
-  shares: {
+  sharedBy: {
     type: [mongoose.Schema.Types.ObjectId],
     ref: 'User',
     default: [],
+  },
+  shareCount: {
+    type: Number,
+    default: 0,
   },
   tags: {
     type: [String],

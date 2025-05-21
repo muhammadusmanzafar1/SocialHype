@@ -149,7 +149,7 @@ exports.validate = async (req, res, next) => {
             req.body.token ||
             req.query.token ||
             req.headers['x-access-token'];
-        if (!token) return res.accessDenied();
+        if (!token) return next(new ApiError('Token is required.', httpStatus.status.UNAUTHORIZED));
 
         let claims = await tokenValidator(token);
         req.sessionId = claims.session;

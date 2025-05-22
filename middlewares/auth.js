@@ -2,6 +2,7 @@
 const httpStatus = require('http-status');
 const jwtHelper = require('../utils/jwt');
 const sessionService = require('../src/auth/services/session');
+const User = require('../src/auth/models/user');
 const ApiError = require('../utils/ApiError');
 /**
  * 
@@ -13,7 +14,7 @@ const tokenValidator = async (token) => {
         return jwtHelper.verifyToken(token);
     } catch (err) {
         if (err.name === 'TokenExpiredError') {
-            throw new ApiError("Token Expired", httpStatus.UNAUTHORIZED);
+            throw new ApiError("Token Expired", httpStatus.status.UNAUTHORIZED);
         }
         throw new ApiError(err);
     }
@@ -26,10 +27,10 @@ const tokenValidator = async (token) => {
 const sessionValidator = async (sessionId) => {
     let session = await sessionService.get(sessionId);
     if (!session) {
-        throw new ApiError('Session not found', httpStatus.UNAUTHORIZED);
+        throw new ApiError('Session not found', httpStatus.status.UNAUTHORIZED);
     }
     if (session.status === 'expired') {
-        throw new ApiError('Session expired', httpStatus.UNAUTHORIZED);
+        throw new ApiError('Session expired', httpStatus.status.UNAUTHORIZED);
     }
     return session;
 };
@@ -39,21 +40,18 @@ const sessionValidator = async (sessionId) => {
  * @returns 
  */
 const userValidator = async (userId) => {
-    let user = await db.user.findById(userId).populate({
-        path: "profile",
-        select: "socialMedia features"
-    });
+    let user = await User.findById(userId);
     if (!user) {
-        throw new ApiError('User not found', httpStatus.UNAUTHORIZED);
+        throw new ApiError('User not found', httpStatus.status.UNAUTHORIZED);
     }
     if (user.status == 'inactive') {
-        throw new ApiError('User status is inactive.', httpStatus.UNAUTHORIZED);
+        throw new ApiError('User status is inactive.', httpStatus.status.UNAUTHORIZED);
     }
     if (user.status == 'deleted') {
-        throw new ApiError('User status is deleted.', httpStatus.UNAUTHORIZED);
+        throw new ApiError('User status is deleted.', httpStatus.status.UNAUTHORIZED);
     }
     if (user.status == 'blocked') {
-        throw new ApiError('User status is blocked.', httpStatus.UNAUTHORIZED);
+        throw new ApiError('User status is blocked.', httpStatus.status.UNAUTHORIZED);
     }
     return user;
 };
@@ -149,7 +147,7 @@ exports.validate = async (req, res, next) => {
             req.body.token ||
             req.query.token ||
             req.headers['x-access-token'];
-        if (!token) return next(new ApiError('Token is required.', httpStatus.status.UNAUTHORIZED));
+        if (!token) throw new ApiError('Token is required.', httpStatus.status.UNAUTHORIZED);
 
         let claims = await tokenValidator(token);
         req.sessionId = claims.session;

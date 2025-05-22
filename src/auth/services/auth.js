@@ -266,7 +266,7 @@ const forgotPassword = async (body) => {
      if (!user) {
           throw new ApiError(
                'Please enter registered email address',
-               httpStatus.UNAUTHORIZED
+               httpStatus.status.UNAUTHORIZED
           );
      }
      await validateUser(user);

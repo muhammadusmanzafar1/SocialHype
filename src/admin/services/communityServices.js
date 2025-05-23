@@ -102,17 +102,36 @@ exports.createCommunity = async (req, res) => {
             bannerImageUrl = uploadImgbanner.url;
         }
 
-        const model = await community.newEntity(avatarImageUrl, bannerImageUrl, body);
+        const model = await community.newEntity(avatarImageUrl, bannerImageUrl, body, {createdByAdmin: true});
         const newCommunity = new community(model);
         if (admin) {
             newCommunity.adminId = admin._id;
         }
-        const membersList = members.map(userId => ({
+        
+        const moderatorSet = new Set(moderators);
+        const memberSet = new Set(members);
+
+        moderatorSet.delete(adminId);
+        memberSet.delete(adminId);
+
+        for (let modId of moderatorSet) {
+            memberSet.delete(modId);
+        }
+
+        const createAdmin = new communityMember({
+            userId: adminId,
+            communityId: newCommunity._id,
+            role: "admin",
+        });
+        await createAdmin.save();
+
+        const membersList = Array.from(memberSet).map(userId => ({
             userId,
             communityId: newCommunity._id,
             role: "member",
         }));
-        const moderatorsList = moderators.map(userId => ({
+
+        const moderatorsList = Array.from(moderatorSet).map(userId => ({
             userId,
             communityId: newCommunity._id,
             role: "moderator",

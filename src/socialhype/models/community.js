@@ -69,6 +69,9 @@ communitySchema.statics.newEntity = async function (avatarImageUrl, bannerImageU
             totalRevenue: body.totalRevenue,
             adminId: body.adminId,
     }
+    if (createdByAdmin) {
+        model.status = "active";
+    }
     return model;
 }
 

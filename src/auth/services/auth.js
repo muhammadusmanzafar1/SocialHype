@@ -280,7 +280,7 @@ const forgotPassword = async (body) => {
 const updatePassword = async (id, body) => {
      const user = await userService.get(id);
      if (!user) {
-          throw new ApiError('Oops! User not found', httpStatus.NOT_FOUND);
+          throw new ApiError('Oops! User not found', httpStatus.status.NOT_FOUND);
      }
      await validateUser(user);
      const isPasswordMatch = await crypto.comparePassword(
@@ -288,7 +288,7 @@ const updatePassword = async (id, body) => {
           user.password
      );
      if (!isPasswordMatch) {
-          throw new ApiError('Old password is incorrect', httpStatus.NOT_FOUND);
+          throw new ApiError('Old password is incorrect', httpStatus.status.NOT_FOUND);
      }
      const isBothPasswordMatch = await crypto.comparePassword(
           body.newPassword,
@@ -297,7 +297,7 @@ const updatePassword = async (id, body) => {
      if (isBothPasswordMatch) {
           throw new ApiError(
                'New password should be different from old password',
-               httpStatus.NOT_FOUND
+               httpStatus.status.NOT_FOUND
           );
      }
      user.password = await crypto.setPassword(body.newPassword);
@@ -307,7 +307,7 @@ const updatePassword = async (id, body) => {
 const resetPassword = async (id, body) => {
      const user = await userService.get(id);
      if (!user) {
-          throw new ApiError('Oops! User not found', httpStatus.UNAUTHORIZED);
+          throw new ApiError('Oops! User not found', httpStatus.status.UNAUTHORIZED);
      }
      user.password = await crypto.setPassword(body.password);
      user.isOtpVerified = false;
@@ -317,7 +317,7 @@ const resetPassword = async (id, body) => {
 const logout = async (id,sessionId) => {
      const user = await userService.get(id);
      if (!user) {
-          throw new ApiError('Oops! User not found', httpStatus.UNAUTHORIZED);
+          throw new ApiError('Oops! User not found', httpStatus.status.UNAUTHORIZED);
      }
      await sessionService.expireSingleSession(sessionId);
 };

@@ -1,6 +1,8 @@
 const community = require("../../socialhype/models/community");
+const communityMember = require("../../socialhype/models/communityMembers");
 const user = require("../../auth/models/user");
 const ApiError = require("../../../utils/ApiError");
+const cloudinary = require("../../../utils/cloudinary");
 const httpStatus = require("http-status");
 
 exports.getAllCommunities = async (req, res) => {
@@ -59,7 +61,7 @@ exports.getCommunityById = async (req, res) => {
 
 exports.createCommunity = async (req, res) => {
     try {
-        const body = req.body;
+        const {adminId, moderators, members, avatarUrl, bannerUrl, ...body} = req.body;
 
         const existingCommunity = await community.findOne({ name: body.name });
         
@@ -67,16 +69,46 @@ exports.createCommunity = async (req, res) => {
             throw new ApiError("Community with this name already exists", httpStatus.status.BAD_REQUEST);
         }
         
-        const admin = await user.findById(body.adminId);
+        const admin = await user.findById(adminId);
         if (admin && admin.status === "deleted") {
             throw new ApiError("Admin account is deleted", httpStatus.status.BAD_REQUEST);
         }
+        let avatarImageUrl = '';
+        let bannerImageUrl = '';
+        if (avatarUrl) {
+            const uploadImgavatar = await cloudinary.uploader.upload(avatarUrl);
+            avatarImageUrl = uploadImgavatar.url;
+        }
+        if (bannerUrl) {
+            const uploadImgbanner = await cloudinary.uploader.upload(bannerUrl);
+            bannerImageUrl = uploadImgbanner.url;
+        }
 
-        const model = await community.newEntity(body);
+        const model = await community.newEntity(avatarImageUrl, bannerImageUrl, body);
         const newCommunity = new community(model);
+        if (admin) {
+            newCommunity.adminId = admin._id;
+        }
+        const membersList = members.map(userId => ({
+            userId,
+            communityId: newCommunity._id,
+            role: "member",
+        }));
+        const moderatorsList = moderators.map(userId => ({
+            userId,
+            communityId: newCommunity._id,
+            role: "moderator",
+        }));
+        if (membersList.length > 0) {
+            await communityMember.insertMany(membersList);
+        }
+        if (moderatorsList.length > 0) {
+            await communityMember.insertMany(moderatorsList);
+        }
+
         const savedCommunity = await newCommunity.save();
 
-        return savedCommunity;
+        return {savedCommunity, membersList, moderatorsList};
     } catch (error) {
         console.error("Error creating community: ", error);
         if (error instanceof ApiError) {

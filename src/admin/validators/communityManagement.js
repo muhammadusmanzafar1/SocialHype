@@ -10,6 +10,8 @@ exports.createCommunityValidator = {
         bannerUrl: joi.string().uri().optional(),
         fee: joi.number().min(0).default(0).optional(),
         adminId: joi.string().required(),
+        moderators: joi.array().items(joi.string()).optional(),
+        members: joi.array().items(joi.string()).optional(),
     })
 }
 

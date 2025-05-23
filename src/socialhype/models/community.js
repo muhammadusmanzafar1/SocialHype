@@ -55,14 +55,14 @@ const communitySchema = new mongoose.Schema({
     },
 });
 
-communitySchema.statics.newEntity = async function (body, createdByAdmin) {
+communitySchema.statics.newEntity = async function (avatarImageUrl, bannerImageUrl, body, createdByAdmin) {
     const model = {
         name: body.name,
             description: body.description,
             type: body.type,
             status: body.status,
-            avatarUrl: body.avatarUrl,
-            bannerUrl: body.bannerUrl,
+            avatarUrl: avatarImageUrl,
+            bannerUrl: bannerImageUrl,
             fee: body.fee,
             totalMembers: body.totalMembers,
             totalPosts: body.totalPosts,

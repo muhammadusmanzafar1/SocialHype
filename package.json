@@ -17,7 +17,7 @@
     "axios": "^1.8.2",
     "bcryptjs": "^3.0.2",
     "camelcase": "^8.0.0",
-    "cloudinary": "^2.6.0",
+    "cloudinary": "^2.6.1",
     "compression": "^1.8.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",

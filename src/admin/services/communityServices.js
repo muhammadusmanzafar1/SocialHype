@@ -8,31 +8,49 @@ const httpStatus = require("http-status");
 exports.getAllCommunities = async (req, res) => {
     try {
         const { page = 1, limit = 10, search = "", type } = req.query;
-
+    
         const query = {
-            name: { $regex: search, $options: "i" }, 
+          name: { $regex: search, $options: "i" },
         };
-
+    
         if (type) {
-            query.type = type; 
+          query.type = type;
         }
-
+    
         const communities = await community
-            .find(query)
-            .populate("adminId", "name email")
-            .select("-__v")
-            .skip((page - 1) * limit)
-            .limit(parseInt(limit));
-
-        const total = await community.countDocuments(query); 
-
+          .find(query)
+          .populate("adminId", "name email profilePicture")
+          .select("-__v")
+          .skip((page - 1) * limit)
+          .limit(parseInt(limit));
+    
+        const communityIds = communities.map(c => c._id);
+    
+        const memberCounts = await communityMember.aggregate([
+          { $match: { communityId: { $in: communityIds } } },
+          { $group: { _id: "$communityId", count: { $sum: 1 } } },
+        ]);
+    
+        const memberCountMap = {};
+        memberCounts.forEach(mc => {
+          memberCountMap[mc._id.toString()] = mc.count;
+        });
+    
+        const communitiesWithMemberCount = communities.map(c => {
+          const cObj = c.toObject();
+          cObj.memberCount = memberCountMap[c._id.toString()] || 0;
+          return cObj;
+        });
+    
+        const total = await community.countDocuments(query);
+    
         return {
-            data: {communities},
-            total,
-            page: parseInt(page),
-            limit: parseInt(limit),
-        };
-    } catch (error) {
+          data: communitiesWithMemberCount,
+          total,
+          page: parseInt(page),
+          limit: parseInt(limit),
+    }
+      } catch (error) {
         throw new ApiError("Error fetching communities: ", httpStatus.status.INTERNAL_SERVER_ERROR);
     }
 };

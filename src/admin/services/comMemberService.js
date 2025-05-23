@@ -8,13 +8,27 @@ const httpStatus = require('http-status');
 exports.getCommunityMemberById = async (req, res) => {
     try {
         const { id } = req.params;
-        const members = await CommunityMember.find({communityId: id})
-        .populate('userId')
-        .populate('communityId');
+        const { page = 1, limit = 10 } = req.query;
+
+        const members = await CommunityMember.find({ communityId: id })
+            .populate('userId')
+            .populate('communityId')
+            .skip((page - 1) * limit)
+            .limit(parseInt(limit));
+
         if (!members || members.length === 0) {
-            throw new ApiError( 'No members found for this community', httpStatus.status.NOT_FOUND);
+            throw new ApiError('No members found for this community', httpStatus.status.NOT_FOUND);
         }
-        return members;
+
+        const totalMembers = await CommunityMember.countDocuments({ communityId: id });
+        const totalPages = Math.ceil(totalMembers / limit);
+
+        return {
+            members,
+            totalPages,
+            currentPage: parseInt(page),
+            totalMembers,
+        }
     } catch (error) {
         if (error instanceof ApiError) {
             return error;

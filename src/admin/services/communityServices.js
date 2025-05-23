@@ -1,5 +1,6 @@
 const community = require("../../socialhype/models/community");
 const communityMember = require("../../socialhype/models/communityMembers");
+const communityPost = require("../../socialhype/models/communityPost");
 const user = require("../../auth/models/user");
 const ApiError = require("../../../utils/ApiError");
 const cloudinary = require("../../../utils/cloudinary");
@@ -61,14 +62,27 @@ exports.getCommunityById = async (req, res) => {
 
         const communityData = await community
             .findById(id)
-            .populate("adminId", "name email")
+            .populate("adminId", "name email profilePicture")
             .select("-__v");
 
         if (!communityData) {
             throw new ApiError("Community not found", httpStatus.status.NOT_FOUND);
         }
 
-        return communityData;
+        const [memberCount, postCount, moderatorCount] = await Promise.all([
+            communityMember.countDocuments({ communityId: id }),
+            communityPost.countDocuments({ communityId: id }),
+            communityMember.countDocuments({ communityId: id, role: "moderator" }),
+        ]);
+
+        const communityWithCounts = {
+            ...communityData.toObject(),
+            memberCount: memberCount || 0,
+            postCount: postCount || 0,
+            moderatorCount: moderatorCount || 0,
+        };
+
+        return communityWithCounts;
     } catch (error) {
         if (error instanceof ApiError) {
             throw error; 

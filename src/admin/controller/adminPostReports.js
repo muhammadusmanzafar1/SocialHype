@@ -6,9 +6,9 @@ exports.getAllPostReport = async (postId) => {
     try {
         const reports = await CommunityPostReport.find({ postId })
             .populate({ path: 'postId', select: 'title content' })
-            .populate({ path: 'reportedBy', select: 'name email' })
+            .populate({ path: 'reportedBy', select: 'name email profilePicture' })
             .sort({ createdAt: -1 })
-            .lean(); // Use lean() for better performance if no mongoose methods are needed on the result
+            .lean(); 
         return reports;
     } catch (error) {
         throw new ApiError(
@@ -16,15 +16,15 @@ exports.getAllPostReport = async (postId) => {
             error.statusCode || httpStatus.INTERNAL_SERVER_ERROR
         );
     }
-}
+} 
 
 exports.getAllCommunityPostReport = async (communityId) => {
     try {
         const reports = await CommunityPostReport.find({ communityId })
             .populate({ path: 'postId', select: 'title content' })
-            .populate({ path: 'reportedBy', select: 'name email' })
+            .populate({ path: 'reportedBy', select: 'name email profilePicture' })
             .sort({ createdAt: -1 })
-            .lean(); // Use lean() for better performance if no mongoose methods are needed on the result
+            .lean(); 
         return reports;
     } catch (error) {
         throw new ApiError(

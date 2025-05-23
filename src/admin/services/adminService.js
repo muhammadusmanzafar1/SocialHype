@@ -6,7 +6,6 @@ const SavedPost = require("../../socialhype/models/savedPost");
 const TaggedPost = require("../../socialhype/models/taggedPost");
 const httpStatus = require("http-status");
 const userService = require("../../auth/services/users");
-const { log } = require("winston");
 
 // <---- User Management Service ----->
 
@@ -116,8 +115,6 @@ exports.updateUser = async (req, res) => {
 
         const existingUser = await userService.get({ email: body.email });
         const existingPhone = await userService.get({ phone: body.phone });
-
-        console.log(existingUser, existingPhone, userId);
         
 
         if ((existingUser && existingUser._id.toString() !== userId) || (existingPhone && existingPhone._id.toString() !== userId)) {

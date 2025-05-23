@@ -31,7 +31,7 @@ exports.getUsersList = async (req, res) => {
         const totalUsers = await User.countDocuments(filters);
 
         if (!users || users.length === 0) {
-            throw new ApiError("No users found", httpStatus.status.NOT_FOUND);
+            return users || [];
         }
 
         return {

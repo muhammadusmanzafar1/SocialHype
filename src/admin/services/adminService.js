@@ -30,12 +30,9 @@ exports.getUsersList = async (req, res) => {
 
         const totalUsers = await User.countDocuments(filters);
 
-        if (!users || users.length === 0) {
-            return [];
-        }
 
         return {
-            users: users.map(user => ({
+            users: users?.map(user => ({
                 _id: user._id,
                 username: user.username,
                 fullName: user.fullName,

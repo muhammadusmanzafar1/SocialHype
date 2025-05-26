@@ -19,6 +19,11 @@ const HypeChallengeSchema = new mongoose.Schema({
         type: Date,
         required: true,
     },
+    status: {
+        type: String,
+        enum: ['active', 'inactive', 'completed'],
+        default: 'active',
+    },
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',

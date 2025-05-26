@@ -17,7 +17,7 @@ router.get('/getCommunityPosts/:communityId', async (req, res) => {
     }
 });
 
-router.patch('/disableCommunityPost', async (req, res) => {
+router.patch('/disableCommunityPost/:postId', async (req, res) => {
     try {
         const post = await CommunityPost.disableCommunityPost(req, res);
         res.status(httpStatus.status.OK).json({ isSuccess: true, message: "Community post disabled successfully", post });

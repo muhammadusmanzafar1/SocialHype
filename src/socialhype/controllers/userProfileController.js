@@ -1,6 +1,7 @@
 const ApiError = require("../../../utils/ApiError.js");
 const httpStatus = require("http-status");
 const User = require("../../../src/auth/models/user.js");
+const userService = require("../../../src/auth/services/users.js");
 
 // Get full profile info for a user by their ID
 exports.getProfile = async (req, res) => {
@@ -19,25 +20,24 @@ exports.getProfile = async (req, res) => {
 
 // Edit profile details like name, username, gender, and images
 exports.editProfile = async (req, res) => {
-  const { userId, fullName, username, gender, profileImage, profileBanner } =
-    req.body;
+  const body = req.body;
+  const userId = req.user.id
 
   try {
-    const updatedUser = await User.findByIdAndUpdate(
-      userId,
-      {
-        fullName,
-        username,
-        gender,
-        profileImage,
-        profileBanner,
-      },
-      { new: true, runValidators: true }
-    );
+    const user = await userService.get(userId);
 
-    if (!updatedUser) throw new ApiError("User Not Found!", 404);
-    return updatedUser;
+    Object.keys(body).forEach((key) => {
+      if (body[key] !== undefined) {
+        user[key] = body[key];
+      }
+    });
+
+    if (!user) throw new ApiError("User Not Found!", 404);
+    return await user.save();
   } catch (err) {
+    if (err instanceof ApiError) {
+      throw err;
+    }
     throw new ApiError(
       `Error While Editing Profile Data : ${err.message}`,
       httpStatus.status.INTERNAL_SERVER_ERROR
@@ -47,7 +47,8 @@ exports.editProfile = async (req, res) => {
 
 //Register a user as a creator with payout details and content price
 exports.registerCreator = async (req, res) => {
-  const { userId, exclusivePrice } = req.body;
+  const { exclusivePrice } = req.body;
+  const userId = req.user.id;
 
   if (exclusivePrice == null || exclusivePrice < 0) {
     throw new ApiError("Valid ExclusivePrice is Required", 400);

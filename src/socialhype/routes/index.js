@@ -2,7 +2,8 @@ const express = require("express");
 const app = express.Router();
 const { validate } = require('../../../middlewares/auth.js')
 
-app.use("/profile", require("./userProfileRoute.js"));
-app.use("/post", require("./userPostRoute.js"));
+app.use("/userProfile", validate, require("./userProfileRoute.js"));
+app.use("/post", validate, require("./userPostRoute.js"));
+app.use("/comment", validate, require("./PostCommentRouter.js"));
 
 module.exports = app;

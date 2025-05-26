@@ -24,7 +24,7 @@ router.get("/profile/:userId", async (req, res) => {
   }
 });
 
-router.put("/profile/edit", async (req, res) => {
+router.put("/edit", async (req, res) => {
   try {
     const updatedUser = await profileController.editProfile(req, res);
     res.status(httpStatus.status.OK).json({
@@ -42,7 +42,7 @@ router.put("/profile/edit", async (req, res) => {
   }
 });
 
-router.patch("/api/profile/creator/register", async (req, res) => {
+router.patch("/creator/register", async (req, res) => {
   try {
     const updatedUser = await profileController.registerCreator(req, res);
     res.status(httpStatus.status.OK).json({

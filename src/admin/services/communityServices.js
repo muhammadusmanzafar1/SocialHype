@@ -20,7 +20,7 @@ exports.getAllCommunities = async (req, res) => {
     
         const communities = await community
           .find(query)
-          .populate("adminId", "name email profilePicture")
+          .populate("adminId", "name email profilePicture fullName")
           .select("-__v")
           .skip((page - 1) * limit)
           .limit(parseInt(limit));
@@ -44,13 +44,15 @@ exports.getAllCommunities = async (req, res) => {
         });
     
         const total = await community.countDocuments(query);
+        const totalPages = Math.ceil(total / limit);
     
         return {
           data: communitiesWithMemberCount,
           total,
+          totalPages,
           page: parseInt(page),
           limit: parseInt(limit),
-    }
+        };
       } catch (error) {
         throw new ApiError("Error fetching communities: ", httpStatus.status.INTERNAL_SERVER_ERROR);
     }

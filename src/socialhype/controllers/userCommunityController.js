@@ -118,9 +118,9 @@ exports.updateCommunity = async (req, res) => {
         }
         Object.keys(body).forEach((key) => {
             if (body[key] !== undefined) {
-                 community[key] = body[key];
+                community[key] = body[key];
             }
-       });
+        });
         if (body.avatarUrl) {
             const uploadImg = await cloudinary.uploader.upload(body.avatarUrl);
             community.avatarUrl = uploadImg.url;
@@ -161,5 +161,96 @@ exports.deleteCommunity = async (req, res) => {
             throw error;
         }
         throw new ApiError(`Something went wrong while deleting the community ${error.message}`, error.statusCode || httpStatus.status.INTERNAL_SERVER_ERROR);
+    }
+}
+
+exports.joinCommunity = async (req, res) => {
+    try {
+        const { communityId } = req.params;
+        const userId = req.user._id;
+
+        const community = await UserCommunity.findById(communityId);
+        if (!community) {
+            throw new ApiError('Community not found', httpStatus.status.NOT_FOUND);
+        }
+        const existingMember = await CommunityMember.findOne({ communityId, userId });
+        if (existingMember) {
+            throw new ApiError('You are already a member of this community', httpStatus.status.BAD_REQUEST);
+        }
+        const newMember = new CommunityMember({
+            communityId,
+            userId,
+            role: 'member',
+            isDisabled: false,
+        });
+        const savedMember = await newMember.save();
+        if (!savedMember) {
+            throw new ApiError('Failed to join community', httpStatus.status.INTERNAL_SERVER_ERROR);
+        }
+        return savedMember;
+    }
+    catch (error) {
+        if (error instanceof ApiError) {
+            throw error;
+        }
+        throw new ApiError(`Something went wrong while joining the community ${error.message}`, error.statusCode || httpStatus.status.INTERNAL_SERVER_ERROR);
+    }
+}
+
+exports.getCommunityMembers = async (req, res) => {
+    try {
+        const { communityId } = req.params;
+        const members = await CommunityMember.find({ communityId })
+            .populate('userId', 'name email profilePicture')
+            .select('userId role isDisabled joinedAt lastActiveAt');
+        if (!members || members.length === 0) {
+            throw new ApiError('No members found in this community', httpStatus.status.NOT_FOUND);
+        }
+        return members
+            .filter(member => member.userId !== null)
+            .map(member => ({
+                userDetail: {
+                    userId: member.userId._id,
+                    name: member.userId.fullName || member.userId.username || '',
+                    email: member.userId.email,
+                    profilePicture: member.userId.profilePicture || ''
+                },
+                role: member.role,
+                isDisabled: member.isDisabled,
+                joinedAt: member.joinedAt,
+                lastActiveAt: member.lastActiveAt
+            }));
+    }
+    catch (error) {
+        if (error instanceof ApiError) {
+            throw error;
+        }
+        throw new ApiError(`Something went wrong while fetching community members ${error.message}`, error.statusCode || httpStatus.status.INTERNAL_SERVER_ERROR);
+    }
+}
+
+exports.leaveCommunity = async (req, res) => {
+    try {
+        const { communityId } = req.params;
+        const userId = req.user._id;
+
+        const community = await UserCommunity.findById(communityId);
+        if (!community) {
+            throw new ApiError('Community not found', httpStatus.status.NOT_FOUND);
+        }
+        const member = await CommunityMember.findOne({ communityId, userId });
+        if (!member) {
+            throw new ApiError('You are not a member of this community', httpStatus.status.BAD_REQUEST);
+        }
+        if (member.role === 'admin') {
+            throw new ApiError('You cannot leave the community as an admin', httpStatus.status.FORBIDDEN);
+        }
+        await CommunityMember.deleteOne({ _id: member._id });
+        return member;
+    } catch (error) {
+        if (error instanceof ApiError) {
+            throw error;
+        }
+        throw new ApiError(`Something went wrong while leaving the community ${error.message}`, error.statusCode || httpStatus.status.INTERNAL_SERVER_ERROR);
     }
 }

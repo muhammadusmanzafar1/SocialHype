@@ -16,8 +16,14 @@ router.get('/getUserCommunities', async (req, res) => {
     
       } catch (error) {
         if (error instanceof ApiError) {
-          return res.status(error.statusCode).json(`Error Fetching Post: ${error.message}`);
-        }
+            return res.status(error.statusCode).json({
+              isSuccess: false,
+              error: {
+                message: error.message,
+                statusCode: error.statusCode,
+              },
+            });
+          }
     
         return res
           .status(httpStatus.status.INTERNAL_SERVER_ERROR)
@@ -36,8 +42,14 @@ router.post('/createCommunity', async (req, res) => {
     
       } catch (error) {
         if (error instanceof ApiError) {
-          return res.status(error.statusCode).json(`Error Creating Community: ${error.message}`);
-        }
+            return res.status(error.statusCode).json({
+              isSuccess: false,
+              error: {
+                message: error.message,
+                statusCode: error.statusCode,
+              },
+            });
+          }
     
         return res
           .status(httpStatus.status.INTERNAL_SERVER_ERROR)
@@ -56,8 +68,14 @@ router.get('/getCommunityById/:communityId', async (req, res) => {
     
       } catch (error) {
         if (error instanceof ApiError) {
-          return res.status(error.statusCode).json(`Error Fetching Community: ${error.message}`);
-        }
+            return res.status(error.statusCode).json({
+              isSuccess: false,
+              error: {
+                message: error.message,
+                statusCode: error.statusCode,
+              },
+            });
+          }
     
         return res
           .status(httpStatus.status.INTERNAL_SERVER_ERROR)
@@ -76,8 +94,14 @@ router.put('/updateCommunity/:communityId', async (req, res) => {
     
       } catch (error) {
         if (error instanceof ApiError) {
-          return res.status(error.statusCode).json(`Error Updating Community: ${error.message}`);
-        }
+            return res.status(error.statusCode).json({
+              isSuccess: false,
+              error: {
+                message: error.message,
+                statusCode: error.statusCode,
+              },
+            });
+          }
     
         return res
           .status(httpStatus.status.INTERNAL_SERVER_ERROR)
@@ -96,12 +120,95 @@ router.delete('/deleteCommunity/:communityId', async (req, res) => {
     
       } catch (error) {
         if (error instanceof ApiError) {
-          return res.status(error.statusCode).json(`Error Deleting Community: ${error.message}`);
-        }
+            return res.status(error.statusCode).json({
+              isSuccess: false,
+              error: {
+                message: error.message,
+                statusCode: error.statusCode,
+              },
+            });
+          }
     
         return res
           .status(httpStatus.status.INTERNAL_SERVER_ERROR)
           .json("Something went wrong!");
+      }
+});
+
+router.put('/joinCommunity/:communityId', async (req, res) => {
+    try {
+        const post = await userCommunityController.joinCommunity(req, res);
+        res.status(httpStatus.status.OK).json({
+          isSuccess: true,
+          message: "Joined Community Successfully!",
+          post,
+        });
+    
+      } catch (error) {
+        if (error instanceof ApiError) {
+            return res.status(error.statusCode).json({
+              isSuccess: false,
+              error: {
+                message: error.message,
+                statusCode: error.statusCode,
+              },
+            });
+          }
+    
+        return res
+          .status(httpStatus.status.INTERNAL_SERVER_ERROR)
+          .json("Something went wrong!");
+      }
+});
+
+router.get('/getCommunityMembers/:communityId', async (req, res) => {
+    try {
+        const members = await userCommunityController.getCommunityMembers(req, res);
+        res.status(httpStatus.status.OK).json({
+          isSuccess: true,
+          message: "Community Members Fetched Successfully!",
+          members,
+        });
+    
+      } catch (error) {
+        if (error instanceof ApiError) {
+            return res.status(error.statusCode).json({
+              isSuccess: false,
+              error: {
+                message: error.message,
+                statusCode: error.statusCode,
+              },
+            });
+          }
+    
+        return res
+          .status(httpStatus.status.INTERNAL_SERVER_ERROR)
+          .json("Something went wrong!");
+      }
+});
+
+router.delete('/leaveCommunity/:communityId', async (req, res) => {
+    try {
+        const member = await userCommunityController.leaveCommunity(req, res);
+        res.status(httpStatus.status.OK).json({
+          isSuccess: true,
+          message: "Left Community Successfully!",
+          member,
+        });
+    
+      } catch (error) {
+        if (error instanceof ApiError) {
+            return res.status(error.statusCode).json({
+              isSuccess: false,
+              error: {
+                message: error.message,
+                statusCode: error.statusCode,
+              },
+            });
+          }
+        return res
+          .status(httpStatus.status.INTERNAL_SERVER_ERROR)
+          .json("Something went wrong!");          
       }
 });
 

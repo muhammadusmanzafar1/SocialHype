@@ -14,7 +14,7 @@ exports.getAllCommunities = async (req, res) => {
           name: { $regex: search, $options: "i" },
         };
     
-        if (type) {
+        if (type && type !== "all") {
           query.type = type;
         }
     

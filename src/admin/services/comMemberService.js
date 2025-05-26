@@ -11,8 +11,7 @@ exports.getCommunityMemberById = async (req, res) => {
         const { page = 1, limit = 10 } = req.query;
 
         const members = await CommunityMember.find({ communityId: id })
-            .populate('userId')
-            .populate('communityId')
+            .populate('userId', "fullName username profilePicture email joiningDate lastActiveAt")
             .skip((page - 1) * limit)
             .limit(parseInt(limit));
 

@@ -198,45 +198,39 @@ exports.updateCommunity = async (req, res) => {
 
 exports.updateCommunityStatus = async (req, res) => {
     try {
-        const { id } = req.params;
-        const status = req.query.status;
+        const { ids } = req.body; 
+        const { status } = req.query;
 
-        const updatedCommunity = await community.findById(id);
-        if (!updatedCommunity) {
-            throw new ApiError("Community not found", httpStatus.status.NOT_FOUND);
+        if (!Array.isArray(ids) || ids.length === 0) {
+            throw new ApiError("Invalid or empty IDs array", httpStatus.status.BAD_REQUEST);
         }
-        switch (status) {
-            case "active":
-                if (updatedCommunity.status === "deleted") {
-                    throw new ApiError("Cannot reactivate a deleted community", httpStatus.status.BAD_REQUEST);
-                }
-                updatedCommunity.status = "active";
-                break;
-            case "inactive":
-                if (updatedCommunity.status === "deleted") {
-                    throw new ApiError("Cannot deactivate a deleted community", httpStatus.status.BAD_REQUEST);
-                }
-                updatedCommunity.status = "inactive";
-                break;
-            case "disabled":
-                if (updatedCommunity.status === "deleted") {
-                    throw new ApiError("Cannot disable a deleted community", httpStatus.status.BAD_REQUEST);
-                }
-                updatedCommunity.status = "disabled";
-                break;
-            case "deleted":
-                updatedCommunity.status = "deleted";
-                break;
-            default:
-                throw new ApiError("Invalid status", httpStatus.status.BAD_REQUEST);
-        }
-        
-        await updatedCommunity.save();
 
-        return updatedCommunity;
+        if (!["active", "inactive", "disabled", "deleted"].includes(status)) {
+            throw new ApiError("Invalid status", httpStatus.status.BAD_REQUEST);
+        }
+
+        const communities = await community.find({ _id: { $in: ids } });
+
+        if (communities.length !== ids.length) {
+            throw new ApiError("Some communities not found", httpStatus.status.NOT_FOUND);
+        }
+
+        for (const updatedCommunity of communities) {
+            if (status !== "deleted" && updatedCommunity.status === "deleted") {
+                throw new ApiError(
+                    `Cannot change status of a deleted community (ID: ${updatedCommunity._id})`,
+                    httpStatus.status.BAD_REQUEST
+                );
+            }
+            updatedCommunity.status = status;
+        }
+
+        await Promise.all(communities.map(c => c.save()));
+
+        return communities;
     } catch (error) {
         throw error instanceof ApiError
             ? error
-            : new ApiError("Error updating community status", httpStatus.status.INTERNAL_SERVER_ERROR);
+            : new ApiError("Error updating community statuses", httpStatus.status.INTERNAL_SERVER_ERROR);
     }
 };

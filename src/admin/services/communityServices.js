@@ -3,7 +3,7 @@ const communityMember = require("../../socialhype/models/communityMembers");
 const communityPost = require("../../socialhype/models/communityPost");
 const user = require("../../auth/models/user");
 const ApiError = require("../../../utils/ApiError");
-const cloudinary = require("../../../utils/cloudinary");
+const uploadToCloudinary = require('../../../utils/cloudinaryUpload');
 const httpStatus = require("http-status");
 
 exports.getAllCommunities = async (req, res) => {
@@ -95,7 +95,7 @@ exports.getCommunityById = async (req, res) => {
 
 exports.createCommunity = async (req, res) => {
     try {
-        const {adminId, moderators, members, avatarUrl, bannerUrl, ...body} = req.body;
+        const {adminId, moderators = [], members = [], ...body} = req.body;
 
         const existingCommunity = await community.findOne({ name: body.name });
         
@@ -109,14 +109,15 @@ exports.createCommunity = async (req, res) => {
         }
         let avatarImageUrl = '';
         let bannerImageUrl = '';
-        if (avatarUrl) {
-            const uploadImgavatar = await cloudinary.uploader.upload(avatarUrl);
-            avatarImageUrl = uploadImgavatar.url;
-        }
-        if (bannerUrl) {
-            const uploadImgbanner = await cloudinary.uploader.upload(bannerUrl);
-            bannerImageUrl = uploadImgbanner.url;
-        }
+        if (req.files?.avatar?.[0]) {
+            const uploadAvatar = await uploadToCloudinary(req.files.avatar[0].buffer);
+            avatarImageUrl = uploadAvatar.secure_url;
+          }
+      
+          if (req.files?.banner?.[0]) {
+            const uploadBanner = await uploadToCloudinary(req.files.banner[0].buffer);
+            bannerImageUrl = uploadBanner.secure_url;
+          }
 
         const model = await community.newEntity(avatarImageUrl, bannerImageUrl, body, {createdByAdmin: true});
         const newCommunity = new community(model);

@@ -57,7 +57,7 @@ app.options('*', cors({
 }));
 
 //media Uploads
-app.use(upload.any());
+// app.use(upload.any());
 
 // parse json request body
 app.use(express.json({ limit: '50mb' }));

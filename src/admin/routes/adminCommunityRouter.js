@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const httpStatus = require("http-status");
 const ApiError = require('../../../utils/ApiError');
+const upload = require('../../../middlewares/upload');
 
 const adminCommunityController = require('../controller/adminComController');
 const {createCommunityValidator, updateCommunityValidator} = require('../validators/communityManagement');
@@ -30,7 +31,7 @@ router.get("/getCommunityById/:id", async (req, res) => {
     }
 });
 
-router.post("/createCommunity", async (req, res) => {
+router.post("/createCommunity", upload.fields([ { name: 'avatar', maxCount: 1 }, { name: 'banner', maxCount: 1 }, ]), async (req, res) => {
     const { error, value } = createCommunityValidator.body.validate(req.body, { abortEarly: false });
 
     if (error) {

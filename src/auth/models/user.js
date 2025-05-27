@@ -113,7 +113,7 @@ const entitySchema = new mongoose.Schema({
 
 entitySchema.statics.newEntity = async function (body, createdByAdmin = true) {
     const model = {
-        username: body.username,
+        username: body.username ? body.username.replace(/\s+/g, '_') : null,
         // displayName: body.displayName || (body.firstName && body.lastName ? `${body.firstName} ${body.lastName}` : null),
         // firstName: body.firstName,
         // lastName: body.lastName,

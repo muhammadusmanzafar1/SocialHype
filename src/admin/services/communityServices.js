@@ -59,6 +59,37 @@ exports.getAllCommunities = async (req, res) => {
     }
 };
 
+exports.getCommunityDetails = async (req, res) => {
+    try {
+        const { communityId } = req.params;
+        const communityDetails = await community.findById(communityId)
+            .populate("adminId", "fullName username name email profilePicture")
+            .sort({ createdAt: -1 })
+            .select("-__v");
+        if (!communityDetails) {
+            throw new ApiError("Community not found", httpStatus.status.NOT_FOUND);
+        }
+        const [admin, member, moderator] = await Promise.all([
+            communityMember.find({ communityId, role: "admin"}),
+            communityMember.find({ communityId, role: "member" }),
+            communityMember.find({ communityId, role: "moderator" }),
+        ]);
+
+        const communityData = {
+            ...communityDetails.toObject(),
+            admin: admin,
+            member: member,
+            moderator: moderator,
+        };
+        return communityData;
+    } catch (error) {
+        if (error instanceof ApiError) {
+            throw error;
+        }
+        throw new ApiError(`Error fetching community details: ${error.message}`, error.statusCode || httpStatus.status.INTERNAL_SERVER_ERROR);
+    }
+};
+
 exports.getCommunityById = async (req, res) => {
     try {
         const { id } = req.params;
@@ -97,8 +128,6 @@ exports.getCommunityById = async (req, res) => {
 exports.createCommunity = async (req, res) => {
     try {
         const {adminId, moderators = [], members = [], ...body} = req.body;
-        console.log("Creating community with body: ", req.body);
-        
 
         const existingCommunity = await community.findOne({ name: body.name });
         

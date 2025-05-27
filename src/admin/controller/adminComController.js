@@ -5,6 +5,11 @@ exports.getAllCommunities = async (req, res) => {
     return retval;
 }
 
+exports.getCommunityDetails = async (req, res) => {
+    const retval = await CommunityService.getCommunityDetails(req, res);
+    return retval;
+}
+
 exports.getCommunityById = async (req, res) => {
     const retval = await CommunityService.getCommunityById(req, res);
     return retval;

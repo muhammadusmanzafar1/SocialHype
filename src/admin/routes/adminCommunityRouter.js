@@ -19,6 +19,18 @@ router.get("/getAllCommunities", async (req, res) => {
     }
 });
 
+router.get('/getCommunityDetails/:communityId', async (req, res) => {
+    try {
+        const communityDetails = await adminCommunityController.getCommunityDetails(req, res);
+        res.status(httpStatus.status.OK).json({ isSuccess: true, message: "Community details fetched successfully", communityDetails });
+    } catch (error) {
+        if (error instanceof ApiError) {
+            return res.status(error.statusCode).json({ message: error.message });
+        }
+        return res.status(httpStatus.status.INTERNAL_SERVER_ERROR).json({ message: error.message || "Server Error" });
+    }
+});
+
 router.get("/getCommunityById/:id", async (req, res) => {
     try {
         const community = await adminCommunityController.getCommunityById(req, res);

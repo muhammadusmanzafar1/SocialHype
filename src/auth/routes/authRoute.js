@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const httpStatus = require("http-status");
 const ApiError = require('../../../utils/ApiError');
+const upload = require('../../../middlewares/upload');
 const { registerUser, verifyOTP, login, registerViaPhone, userProfile, resendOTP, forgotPassword, updatePassword, resetPassword, logout } = require('../controllers/authController')
 const { registerViaEmail, validateVerifyOTP, loginVerify, registerViaPhone: registerViaPhones, userProfileValidation, resendOtp, forgotPassword: forgetPass,
     updatePassword: updatePass, resetPassword: resetPass 
@@ -31,7 +32,7 @@ router.post("/register/email", async (req, res) => {
 });
 
 // RegisterWithEmailAndProfile
-router.post("/profile/:userId", async (req, res) => {
+router.post("/profile/:userId", upload.fields([ { name: 'profilePicture', maxCount: 1 }, { name: 'profileBanner', maxCount: 1 }, ]), async (req, res) => {
     const { error, value } = userProfileValidation.body.validate(req.body, { abortEarly: false });
 
     if (error) {

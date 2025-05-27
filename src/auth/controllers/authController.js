@@ -65,7 +65,7 @@ exports.login = asyncHandler(async (req, res) => {
 });
 
 exports.userProfile = asyncHandler(async (req, res) => {
-    let user = await authService.userProfile(req.body, req.params.userId);
+    let user = await authService.userProfile(req, req.params.userId);
     return user;
 })
 

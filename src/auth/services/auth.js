@@ -7,6 +7,7 @@ const ApiError = require("../../../utils/ApiError");
 const userDB = require('../models/user')
 const utils = require('../../../utils/utils');
 const email = require('../../../utils/email');
+const uploadToCloudinary = require('../../../utils/cloudinaryUpload');
 
 const registerWithEmail = async (body) => {
 
@@ -196,8 +197,8 @@ const validateUser = async (user) => {
     }
 };
 
-const userProfile = async (body, userId) => {
-     const { username} = body;
+const userProfile = async (req, userId) => {
+     const {username, ...body} = req.body;
 
      if (!userId) {
           throw new ApiError('User ID is required', httpStatus.status.BAD_REQUEST);
@@ -222,12 +223,29 @@ const userProfile = async (body, userId) => {
           );
      }
 
+     let avatarImageUrl = '';
+     let bannerImageUrl = '';
+        if (req.files?.profilePicture?.[0]) {
+            const uploadAvatar = await uploadToCloudinary(req.files.profilePicture[0].buffer);
+            avatarImageUrl = uploadAvatar.secure_url;
+          }
+      
+          if (req.files?.profileBanner?.[0]) {
+            const uploadBanner = await uploadToCloudinary(req.files.profileBanner[0].buffer);
+            bannerImageUrl = uploadBanner.secure_url;
+          }
+
+
      // Update user profile fields
      Object.keys(body).forEach((key) => {
-          if (body[key] !== undefined) {
+          if (body[key] !== undefined && key !== 'profilePicture' && key !== 'profileBanner') {
                user[key] = body[key];
           }
      });
+
+     if (avatarImageUrl) user.profilePicture = avatarImageUrl;
+     if (bannerImageUrl) user.profileBanner = bannerImageUrl;
+
 
      return await user.save();
 };

@@ -12,6 +12,7 @@ exports.getAllCommunities = async (req, res) => {
     
         const query = {
           name: { $regex: search, $options: "i" },
+          status: { $ne: "deleted" },
         };
     
         if (type && type !== "all") {

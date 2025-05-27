@@ -9,6 +9,8 @@ exports.getAllComApplication = async (req) => {
 
         const [applications, totalApplications] = await Promise.all([
             CommunitiesApplication.find({ status: 'pending' })
+            .sort({ createdAt: -1 })
+            .populate("adminId", "fullName username profilePicture")
             .skip(skip)
             .limit(parseInt(limit)),
             CommunitiesApplication.countDocuments({ status: 'pending' })

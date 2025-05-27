@@ -7,5 +7,6 @@ app.use("/post", validate, require("./userPostRoute.js"));
 app.use("/comment", validate, require("./PostCommentRouter.js"));
 app.use("/community", validate, require("./UserCommunityRouter.js"));
 app.use("/challenge", validate, require("./hypeChallengeRouter.js"));
+app.use("/notification", validate, require("./notificationRouter.js"));
 
 module.exports = app;

@@ -16,10 +16,6 @@ exports.getAllComApplication = async (req) => {
             CommunitiesApplication.countDocuments({ status: 'pending' })
         ]);
 
-        if (!applications || applications.length === 0) {
-            throw new ApiError('No community applications found', httpStatus.status.NOT_FOUND);
-        }
-
         return {
             data: applications,
             totalApplications,

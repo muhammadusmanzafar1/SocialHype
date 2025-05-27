@@ -64,7 +64,7 @@ exports.getCommunityById = async (req, res) => {
 
         const communityData = await community
             .findById(id)
-            .populate("adminId", "name email profilePicture")
+            .populate("adminId", "fullName username name email profilePicture")
             .select("-__v");
 
         if (!communityData) {

@@ -11,7 +11,7 @@ router.get('/getAllComApplication', async (req, res) => {
         res.status(httpStatus.status.OK).json({
             status: true,
             message: 'Community applications fetched successfully',
-            data: applications,
+            applications,
         });
     } catch (error) {
         if (error instanceof ApiError) {

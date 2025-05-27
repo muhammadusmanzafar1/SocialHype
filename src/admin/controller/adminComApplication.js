@@ -21,7 +21,7 @@ exports.getAllComApplication = async (req) => {
         }
 
         return {
-            applications,
+            data: applications,
             totalApplications,
             totalPages: Math.ceil(totalApplications / limit),
             currentPage: parseInt(page),

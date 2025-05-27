@@ -27,7 +27,7 @@ router.get('/getAllComApplication', async (req, res) => {
     }
 });
 
-router.post('/Application/status', async (req, res) => {
+router.put('/Application/status', async (req, res) => {
     try {
         const { applicationId } = req.body;
         const { status } = req.query;

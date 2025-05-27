@@ -69,15 +69,13 @@ exports.getCommunityDetails = async (req, res) => {
         if (!communityDetails) {
             throw new ApiError("Community not found", httpStatus.status.NOT_FOUND);
         }
-        const [admin, member, moderator] = await Promise.all([
-            communityMember.find({ communityId, role: "admin"}),
-            communityMember.find({ communityId, role: "member" }),
-            communityMember.find({ communityId, role: "moderator" }),
+        const [ member, moderator] = await Promise.all([
+            communityMember.find({ communityId, role: "member" }).select("userId").populate("userId", "fullName username profilePicture"),
+            communityMember.find({ communityId, role: "moderator" }).select("userId").populate("userId", "fullName username profilePicture"),
         ]);
 
         const communityData = {
             ...communityDetails.toObject(),
-            admin: admin,
             member: member,
             moderator: moderator,
         };

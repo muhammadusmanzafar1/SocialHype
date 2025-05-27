@@ -96,6 +96,8 @@ exports.getCommunityById = async (req, res) => {
 exports.createCommunity = async (req, res) => {
     try {
         const {adminId, moderators = [], members = [], ...body} = req.body;
+        console.log("Creating community with body: ", req.body);
+        
 
         const existingCommunity = await community.findOne({ name: body.name });
         
@@ -155,9 +157,11 @@ exports.createCommunity = async (req, res) => {
         }));
         if (membersList.length > 0) {
             await communityMember.insertMany(membersList);
+            newCommunity.totalMembers += membersList.length;
         }
         if (moderatorsList.length > 0) {
             await communityMember.insertMany(moderatorsList);
+            newCommunity.totalMembers += moderatorsList.length;
         }
 
         const savedCommunity = await newCommunity.save();

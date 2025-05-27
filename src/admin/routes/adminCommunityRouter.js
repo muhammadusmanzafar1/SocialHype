@@ -71,7 +71,7 @@ router.put("/updateCommunity/:id", async (req, res) => {
     }
 });
 
-router.put('/updateCommunityStatus/:id', async (req, res) => {
+router.put('/updateCommunityStatus', async (req, res) => {
     try {
         const community = await adminCommunityController.updateCommunityStatus(req, res);
         res.status(httpStatus.status.OK).json({ isSuccess: true, message: "Community status updated successfully", community });

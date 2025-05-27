@@ -17,7 +17,7 @@ exports.getAllComApplication = async (req) => {
         ]);
 
         if (!applications || applications.length === 0) {
-            throw new ApiError(httpStatus.status.NOT_FOUND, 'No community applications found');
+            throw new ApiError('No community applications found', httpStatus.status.NOT_FOUND);
         }
 
         return {

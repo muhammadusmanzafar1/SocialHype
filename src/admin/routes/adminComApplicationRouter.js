@@ -15,12 +15,12 @@ router.get('/getAllComApplication', async (req, res) => {
         });
     } catch (error) {
         if (error instanceof ApiError) {
-            res.status(error.statusCode).json({
+            return res.status(error.statusCode).json({
                 status: false,
                 message: error.message,
             });
         }
-        res.status(httpStatus.status.INTERNAL_SERVER_ERROR).json({
+        return res.status(httpStatus.status.INTERNAL_SERVER_ERROR).json({
             status: false,
             message: 'Internal server error',
         });
@@ -39,12 +39,12 @@ router.post('/Application/status', async (req, res) => {
         });
     } catch (error) {
         if (error instanceof ApiError) {
-            res.status(error.statusCode).json({
+            return res.status(error.statusCode).json({
                 status: false,
                 message: error.message,
             });
         }
-        res.status(httpStatus.status.INTERNAL_SERVER_ERROR).json({
+        return res.status(httpStatus.status.INTERNAL_SERVER_ERROR).json({
             status: false,
             message: 'Internal server error',
         });

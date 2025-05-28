@@ -6,12 +6,15 @@ const postReport = require('../../socialhype/models/postReport');
 exports.getCommunityPosts = async (req, res) => {
     try {
         const { communityId } = req.params;
+        const { page = 1, limit = 10 } = req.query;
         const posts = await CommunityPost.find({ communityId, status: 'active' })
-            .populate('postedBy')
-            .populate('communityId')
-        if (!posts || posts.length === 0) {
-            throw new ApiError('No posts found for this community', httpStatus.status.NOT_FOUND);
-        }
+            .populate('postedBy', 'username email profilePicture')
+            .sort({ createdAt: -1 })
+            .skip((page - 1) * limit)
+            .limit(parseInt(limit));
+            if (!posts || posts.length === 0) {
+                throw new ApiError('No posts found for this community', httpStatus.status.NOT_FOUND);
+            }
         return posts;
     } catch (error) {
         if (error instanceof ApiError) {

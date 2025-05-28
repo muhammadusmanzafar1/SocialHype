@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const communitySchema = new mongoose.Schema({
     postId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Post',
+        ref: 'CommunityPost',
         required: true
     },
     communityId: {

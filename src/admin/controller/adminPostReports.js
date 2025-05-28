@@ -22,7 +22,7 @@ exports.getAllPostReport = async (postId) => {
 exports.getAllCommunityPostReport = async (communityId) => {
     try {
         const reports = await CommunityPostReport.find({ communityId })
-            .populate({ path: 'postId', select: 'title content' })
+            .populate({ path: 'postId', select: '-communityId -reportCount ' })
             .populate({ path: 'reportedBy', select: 'name email profilePicture' })
             .sort({ createdAt: -1 })
             .lean(); 

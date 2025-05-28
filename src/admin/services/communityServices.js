@@ -217,12 +217,31 @@ exports.createCommunity = async (req, res) => {
 exports.updateCommunity = async (req, res) => {
     try {
         const { id } = req.params;
-        const body = req.body;
+        const { adminId, moderators = [], members = [], ...body } = req.body;
 
         const existingCommunity = await community.findOne({ name: body.name });
 
         if (existingCommunity && existingCommunity._id.toString() !== id) {
-            throw new ApiError("Community with this name already exists", httpStatus.BAD_REQUEST);
+            throw new ApiError("Community with this name already exists", httpStatus.status.BAD_REQUEST);
+        }
+
+        const admin = await user.findById(adminId);
+        if (admin && admin.status === "deleted") {
+            throw new ApiError("Admin account is deleted", httpStatus.status.BAD_REQUEST);
+        }
+
+        let avatarImageUrl = '';
+        let bannerImageUrl = '';
+        if (req.files?.avatar?.[0]) {
+            const uploadAvatar = await uploadToCloudinary(req.files.avatar[0].buffer);
+            avatarImageUrl = uploadAvatar.secure_url;
+            body.avatarUrl = avatarImageUrl;
+        }
+
+        if (req.files?.banner?.[0]) {
+            const uploadBanner = await uploadToCloudinary(req.files.banner[0].buffer);
+            bannerImageUrl = uploadBanner.secure_url;
+            body.bannerUrl = bannerImageUrl;
         }
 
         const updatedCommunity = await community.findByIdAndUpdate(id, body, { new: true });
@@ -231,8 +250,45 @@ exports.updateCommunity = async (req, res) => {
             throw new ApiError("Community not found", httpStatus.status.NOT_FOUND);
         }
 
-        return updatedCommunity;
+        const moderatorSet = new Set(moderators);
+        const memberSet = new Set(members);
+
+        moderatorSet.delete(adminId);
+        memberSet.delete(adminId);
+
+        for (let modId of moderatorSet) {
+            memberSet.delete(modId);
+        }
+
+        const membersList = Array.from(memberSet).map(userId => ({
+            userId,
+            communityId: id,
+            role: "member",
+        }));
+
+        const moderatorsList = Array.from(moderatorSet).map(userId => ({
+            userId,
+            communityId: id,
+            role: "moderator",
+        }));
+
+        let totalMembers = 0;
+        if (membersList.length > 0) {
+            await communityMember.insertMany(membersList);
+            totalMembers += membersList.length;
+        }
+        if (moderatorsList.length > 0) {
+            await communityMember.insertMany(moderatorsList);
+            totalMembers += moderatorsList.length;
+        }
+
+        updatedCommunity.totalMembers += totalMembers;
+        updatedCommunity.adminId = adminId;
+        await updatedCommunity.save();
+
+        return { updatedCommunity, membersList, moderatorsList };
     } catch (error) {
+        console.error("Error updating community: ", error);
         throw error instanceof ApiError
             ? error
             : new ApiError("Error updating community", httpStatus.status.INTERNAL_SERVER_ERROR);

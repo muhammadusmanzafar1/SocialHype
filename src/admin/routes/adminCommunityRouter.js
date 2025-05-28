@@ -64,7 +64,7 @@ router.post("/createCommunity", upload.fields([ { name: 'avatar', maxCount: 1 },
     }
 });
 
-router.put("/updateCommunity/:id", async (req, res) => {
+router.put("/updateCommunity/:id", upload.fields([ { name: 'avatar', maxCount: 1 }, { name: 'banner', maxCount: 1 }, ]), async (req, res) => {
     const { error, value } = updateCommunityValidator.body.validate(req.body, { abortEarly: false });
 
     if (error) {

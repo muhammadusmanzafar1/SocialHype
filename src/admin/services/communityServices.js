@@ -76,8 +76,18 @@ exports.getCommunityDetails = async (req, res) => {
 
         const communityData = {
             ...communityDetails.toObject(),
-            member: member,
-            moderator: moderator,
+            member: member.map(m => m.userId ? ({
+                _id: m.userId._id,
+                fullName: m.userId.fullName,
+                username: m.userId.username,
+                profilePicture: m.userId.profilePicture
+            }) : null).filter(Boolean),
+            moderator: moderator.map(m => m.userId ? ({
+                _id: m.userId._id,
+                fullName: m.userId.fullName,
+                username: m.userId.username,
+                profilePicture: m.userId.profilePicture
+            }) : null).filter(Boolean),
         };
         return communityData;
     } catch (error) {

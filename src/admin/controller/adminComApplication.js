@@ -4,16 +4,26 @@ const CommunitiesApplication = require('../../socialhype/models/community');
 
 exports.getAllComApplication = async (req) => {
     try {
-        const { page = 1, limit = 10 } = req.query;
+        const { page = 1, limit = 10, search = '', type = '' } = req.query;
         const skip = (page - 1) * limit;
 
+        const query = { status: 'pending' };
+
+        if (search) {
+            query.name = { $regex: search, $options: 'i' };
+        }
+
+        if (type && type !== 'all' && ['public', 'private', 'paid'].includes(type)) {
+            query.type = type; // Exact match filter on type
+        }
+
         const [applications, totalApplications] = await Promise.all([
-            CommunitiesApplication.find({ status: 'pending' })
+            CommunitiesApplication.find(query)
             .sort({ createdAt: -1 })
             .populate("adminId", "fullName username profilePicture")
             .skip(skip)
             .limit(parseInt(limit)),
-            CommunitiesApplication.countDocuments({ status: 'pending' })
+            CommunitiesApplication.countDocuments(query)
         ]);
 
         return {

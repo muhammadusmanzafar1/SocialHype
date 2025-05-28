@@ -14,7 +14,7 @@ exports.getAllComApplication = async (req) => {
         }
 
         if (type && type !== 'all' && ['public', 'private', 'paid'].includes(type)) {
-            query.type = type; // Exact match filter on type
+            query.type = type;
         }
 
         const [applications, totalApplications] = await Promise.all([

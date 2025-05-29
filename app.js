@@ -44,7 +44,7 @@ app.use(mongoSanitize());
 
 // enable cors
 const allowedOrigins = [
-    'http://localhost:5173',
+    // 'http://localhost:5173',
     'https://socialhype.netlify.app'
   ];
   

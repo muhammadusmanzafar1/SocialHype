@@ -12,22 +12,22 @@ const apiRouter = require('./src/routes/index')
 
 const app = express();
 
-// app.use(function (err, req, res, next) {
-//     if (err) {
-//         (res.log).error(err.stack);
-//         if (req.xhr) {
-//             res.send(500, { error: 'Something went wrong!' });
-//         } else {
-//             next(err);
-//         }
+app.use(function (err, req, res, next) {
+    if (err) {
+        (res.log).error(err.stack);
+        if (req.xhr) {
+            res.send(500, { error: 'Something went wrong!' });
+        } else {
+            next(err);
+        }
 
-//         return;
-//     }
-//     res.header("Access-Control-Allow-Origin", "*");
-//     res.header("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, PATCH, DELETE");
-//     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
-//     next();
-// });
+        return;
+    }
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, PATCH, DELETE");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+    next();
+});
 
 // Middleware
 app.use((req, res, next) => {
@@ -44,7 +44,7 @@ app.use(mongoSanitize());
 
 // enable cors
 const allowedOrigins = [
-    // 'http://localhost:5173',
+    'http://localhost:5173',
     'https://socialhype.netlify.app'
   ];
   

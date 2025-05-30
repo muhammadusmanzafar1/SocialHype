@@ -19,16 +19,31 @@ exports.getCommunityMemberById = async (req, res) => {
         if (!members || members.length === 0) {
             throw new ApiError('No members found for this community', httpStatus.status.NOT_FOUND);
         }
+        console.log(members);
+        
 
-        const totalMembers = await CommunityMember.countDocuments({ communityId: id });
+        const totalMembers = members.length || 0;
         const totalPages = Math.ceil(totalMembers / limit);
 
         return {
-            members,
+            users: members.map(member => ({
+              _id: member._id,
+              username: member.userId?.username || null,
+              fullName: member.userId?.fullName || null,
+              email: member.userId?.email || null,
+              profilePicture: member.userId?.profilePicture || null,
+              gender: member.userId?.gender || null,
+              status: member.userId?.status || null,
+              createdOn: member.userId?.createdAt || null,
+              lastActive: member.lastActiveAt || "N/A",
+              totalPosts: member.userId?.postsCount || 0,
+              accountStatus: member.isDisabled ? "Disabled" : "Enabled",
+              userType: member.userId?.userType || null,
+            })),
+            totalMembers,
             totalPages,
             currentPage: parseInt(page),
-            totalMembers,
-        }
+          };          
     } catch (error) {
         if (error instanceof ApiError) {
             return error;

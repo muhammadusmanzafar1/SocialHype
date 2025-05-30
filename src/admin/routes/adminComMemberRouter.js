@@ -65,7 +65,7 @@ router.get('/getCommunityModerators/:communityId', async (req, res) => {
     }
 });
 
-router.post('/addCommunityMember', async (req, res) => {
+router.post('/addCommunityMember/:communityId', async (req, res) => {
     try {
         const members = await CommunityMember.addCommunityMember(req, res);
         res.status(httpStatus.status.CREATED).json({ isSuccess: true, message: "Community moderators added successfully", members });

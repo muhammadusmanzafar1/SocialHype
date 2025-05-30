@@ -19,8 +19,6 @@ exports.getCommunityMemberById = async (req, res) => {
         if (!members || members.length === 0) {
             throw new ApiError('No members found for this community', httpStatus.status.NOT_FOUND);
         }
-        console.log(members);
-        
 
         const totalMembers = members.length || 0;
         const totalPages = Math.ceil(totalMembers / limit);
@@ -52,27 +50,27 @@ exports.getCommunityMemberById = async (req, res) => {
     }
 }
 
-exports.addCommunityMember = async (req, res) => {
-    try {
-        const { userId, communityId } = req.body;
-        const user = await User.findById(userId);
-        if (!user) {
-            throw new ApiError('User not found', httpStatus.status.NOT_FOUND);
-        }
-        const community = await Community.findById(communityId);
-        if (!community) {
-            throw new ApiError('Community not found', httpStatus.status.NOT_FOUND);
-        }
-        const communityMember = new CommunityMember({ userId, communityId });
-        await communityMember.save();
-        return communityMember;
-    } catch (error) {
-        if (error instanceof ApiError) {
-            return error;
-        }
-        throw new ApiError(error.message, error.statusCode || httpStatus.status.INTERNAL_SERVER_ERROR);
-    }
-}
+// exports.addCommunityMember = async (req, res) => {
+//     try {
+//         const { userId, communityId } = req.body;
+//         const user = await User.findById(userId);
+//         if (!user) {
+//             throw new ApiError('User not found', httpStatus.status.NOT_FOUND);
+//         }
+//         const community = await Community.findById(communityId);
+//         if (!community) {
+//             throw new ApiError('Community not found', httpStatus.status.NOT_FOUND);
+//         }
+//         const communityMember = new CommunityMember({ userId, communityId });
+//         await communityMember.save();
+//         return communityMember;
+//     } catch (error) {
+//         if (error instanceof ApiError) {
+//             return error;
+//         }
+//         throw new ApiError(error.message, error.statusCode || httpStatus.status.INTERNAL_SERVER_ERROR);
+//     }
+// }
 
 exports.disableCommunityMember = async (req, res) => {
     try {
@@ -150,20 +148,32 @@ exports.getCommunityModerators = async (req, res) => {
     }
 }
 
-exports.addCommunityModerator = async (req, res) => {
+exports.addCommunityMember = async (req, res) => {
     try {
-        const { userId, communityId } = req.body;
-        const user = await User.findById(userId);
-        if (!user) {
-            throw new ApiError('User not found', httpStatus.status.NOT_FOUND);
+        const { userIds = [] } = req.body;
+        const { communityId } = req.params;
+        const { type } = req.query;
+
+        if (!Array.isArray(userIds) || userIds.length === 0) {
+            throw new ApiError('User IDs must be a non-empty array', httpStatus.status.BAD_REQUEST);
         }
+
         const community = await Community.findById(communityId);
         if (!community) {
             throw new ApiError('Community not found', httpStatus.status.NOT_FOUND);
         }
-        const communityMember = new CommunityMember({ userId, communityId, role: 'moderator' });
-        await communityMember.save();
-        return communityMember;
+        if (type !== 'moderator' && type !== 'member') {
+            throw new ApiError('Invalid role type', httpStatus.status.BAD_REQUEST);
+        }
+        const addedMembers = [];
+        for (const userId of userIds) {
+
+            const communityMember = new CommunityMember({ userId, communityId, role: type });
+            await communityMember.save();
+            addedMembers.push(communityMember);
+        }
+
+        return addedMembers;
     } catch (error) {
         if (error instanceof ApiError) {
             return error;

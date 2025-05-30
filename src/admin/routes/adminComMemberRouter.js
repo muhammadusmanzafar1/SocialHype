@@ -17,17 +17,17 @@ router.get('/getCommunityMembers/:id', async (req, res) => {
     }
 });
 
-router.post('/addCommunityMember', async (req, res) => {
-    try {
-        const Members = await CommunityMember.addCommunityMember(req, res);
-        res.status(httpStatus.status.CREATED).json({ isSuccess: true, message: "Communities added successfully", Members });
-    } catch (error) {
-        if (error instanceof ApiError) {
-            return res.status(error.statusCode).json({ message: error.message });
-        }
-        return res.status(httpStatus.status.INTERNAL_SERVER_ERROR).json({ message: error.message || "Server Error" });
-    }
-});
+// router.post('/addCommunityMember', async (req, res) => {
+//     try {
+//         const Members = await CommunityMember.addCommunityMember(req, res);
+//         res.status(httpStatus.status.CREATED).json({ isSuccess: true, message: "Communities added successfully", Members });
+//     } catch (error) {
+//         if (error instanceof ApiError) {
+//             return res.status(error.statusCode).json({ message: error.message });
+//         }
+//         return res.status(httpStatus.status.INTERNAL_SERVER_ERROR).json({ message: error.message || "Server Error" });
+//     }
+// });
 
 router.patch('/disableCommunityMember', async (req, res) => {
     try {
@@ -65,9 +65,9 @@ router.get('/getCommunityModerators/:communityId', async (req, res) => {
     }
 });
 
-router.post('/addCommunityModerator', async (req, res) => {
+router.post('/addCommunityMember', async (req, res) => {
     try {
-        const members = await CommunityMember.addCommunityModerator(req, res);
+        const members = await CommunityMember.addCommunityMember(req, res);
         res.status(httpStatus.status.CREATED).json({ isSuccess: true, message: "Community moderators added successfully", members });
     } catch (error) {
         if (error instanceof ApiError) {

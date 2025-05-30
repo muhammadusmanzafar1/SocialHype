@@ -5,10 +5,10 @@ exports.getCommunityMember = async (req, res) => {
     return retVal;
 }
 
-exports.addCommunityMember = async (req, res) => {
-    const retVal = await CommunityMember.addCommunityMember(req, res);
-    return retVal;
-}
+// exports.addCommunityMember = async (req, res) => {
+//     const retVal = await CommunityMember.addCommunityMember(req, res);
+//     return retVal;
+// }
 
 exports.disableCommunityMember = async (req, res) => {
     const retVal = await CommunityMember.disableCommunityMember(req, res);
@@ -25,8 +25,8 @@ exports.getCommunityModerators = async (req, res) => {
     return retVal;
 }
 
-exports.addCommunityModerator = async (req, res) => {
-    const retVal = await CommunityMember.addCommunityModerator(req, res);
+exports.addCommunityMember = async (req, res) => {
+    const retVal = await CommunityMember.addCommunityMember(req, res);
     return retVal;
 }
 

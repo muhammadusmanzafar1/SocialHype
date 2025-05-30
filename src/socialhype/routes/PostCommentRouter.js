@@ -6,7 +6,7 @@ const ApiError = require("../../../utils/ApiError");
 const postCommentController = require("../controllers/postComment.js");
 
 // Create a new comment
-router.post("/createComment", async (req, res) => {
+router.post("/createComment/:postId", async (req, res) => {
   try {
     const comment = await postCommentController.createComment(req, res);
     res.status(httpStatus.status.CREATED).json({

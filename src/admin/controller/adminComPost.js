@@ -8,7 +8,7 @@ exports.getCommunityPosts = async (req, res) => {
         const { communityId } = req.params;
         const { page = 1, limit = 10 } = req.query;
         const posts = await CommunityPost.find({ communityId, status: 'active' })
-            .populate('postedBy', 'username email profilePicture')
+            .populate('postedBy', 'username fullName email profilePicture')
             .sort({ createdAt: -1 })
             .skip((page - 1) * limit)
             .limit(parseInt(limit));

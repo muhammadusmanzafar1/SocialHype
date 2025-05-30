@@ -4,9 +4,10 @@ const httpStatus = require("http-status");
 const postController = require("../controllers/userPostController.js");
 const ApiError = require("../../../utils/ApiError.js");
 const validate = require("../validators/userPost.js")
+const upload = require("../../../middlewares/upload.js");
 
 
-router.post('/createPost', async (req, res) => {
+router.post('/createPost', upload.fields([ { name: 'media', maxCount: 1 } ]), async (req, res) => {
   const { error, value } = validate.postValidationSchema.validate(req.body);
 
 if (error) {
@@ -22,6 +23,25 @@ if (error) {
   } catch (error) {
     if (error instanceof ApiError) {
       return res.status(error.statusCode).json(`Error Creating Post: ${error.message}`);
+    }
+
+    return res
+      .status(httpStatus.status.INTERNAL_SERVER_ERROR)
+      .json("Something went wrong!");
+  }
+});
+
+router.get('/getAllPosts/:userId', async (req, res) => {
+  try {
+    const posts = await postController.getAllPosts(req, res);
+    res.status(httpStatus.status.OK).json({
+      isSuccess: true,
+      message: "Posts Fetched Successfully!",
+      posts,
+    });
+  } catch (error) {
+    if (error instanceof ApiError) {
+      return res.status(error.statusCode).json(`Error Fetching Posts: ${error.message}`);
     }
 
     return res

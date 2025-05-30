@@ -22,15 +22,15 @@ exports.getAllPostReport = async (postId) => {
 exports.getAllCommunityPostReport = async (communityId) => {
     try {
         const reports = await CommunityPostReport.find({ communityId })
-            .populate({ path: 'postId', select: '-communityId -reportCount ' })
-            .populate({ path: 'reportedBy', select: 'name email profilePicture' })
+            .populate({ path: 'postId', select: '-communityId', populate: { path: 'postedBy', select: 'fullName username email profilePicture' } })
+            .populate({ path: 'reportedBy', select: 'fullName username email profilePicture' })
             .sort({ createdAt: -1 })
             .lean(); 
         return reports;
     } catch (error) {
         throw new ApiError(
             error.message || 'An error occurred while fetching post reports',
-            error.statusCode || httpStatus.INTERNAL_SERVER_ERROR
+            error.statusCode || httpStatus.status.INTERNAL_SERVER_ERROR
         );
     }
 }

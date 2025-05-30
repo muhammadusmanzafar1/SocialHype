@@ -7,6 +7,7 @@ const challengeController = require('../controllers/challengeController');
 const challengeValidator = require('../validators/challenge');
 
 router.get('/getAllChallenges', async (req, res,) => {
+    // Add logic if the end date is expire dont get the hype
     try {
         const challenges = await challengeController.getAllChallenges(req, res);
         res.status(httpStatus.status.OK).json({

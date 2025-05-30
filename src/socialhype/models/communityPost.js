@@ -11,6 +11,10 @@ const communitySchema = new mongoose.Schema({
         ref: 'User',
         required: true,
     },
+    title: {
+        type: String,
+        required: true,
+      },
     caption: {
         type: String,
     },
@@ -21,10 +25,9 @@ const communitySchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
     }],
-    //Ref will be added later of the comment model
     comments: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
+        ref: 'Comment',
     }],
     shares: [{
         type: mongoose.Schema.Types.ObjectId,

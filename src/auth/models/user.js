@@ -64,6 +64,14 @@ const entitySchema = new mongoose.Schema({
         enum: authMethods,
         default: 'email',
     },
+    followers: {
+        type:Number,
+        default: 0,
+    },
+    following: {
+        type:Number,
+        default: 0,
+    },
     countryCode: String,
     ISOCode: String,
     activationCode: String,

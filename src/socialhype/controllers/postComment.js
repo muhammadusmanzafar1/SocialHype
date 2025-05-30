@@ -7,10 +7,17 @@ const httpStatus = require("http-status");
 // Create a new comment
 exports.createComment = async (req, res) => {
   const body = req.body;
+  const { postId } = req.params;
+  if (!body.text || !postId) {
+    throw new ApiError(
+      "Comment text and post ID are required",
+      httpStatus.status.BAD_REQUEST
+    );
+  }
   try {
     const userId = req.user.id;
 
-    const newComment = new Comment({ ...body, userId: userId });
+    const newComment = new Comment({ ...body, userId: userId, postId: postId });
     await newComment.save();
     return newComment;
   } catch (err) {
@@ -96,10 +103,17 @@ exports.reportComment = async (req, res) => {
   const body = req.body;
   const userId = req.user.id;
 
+  
   try {
+    const commentDetail = await Comment.findById(commentId);
+    if (!commentDetail) {
+      throw new ApiError("Comment not found", httpStatus.status.NOT_FOUND);
+    }
+
     const commentReport = new CommentReport({
       commentId: commentId,
-      userId: userId,
+      postId: commentDetail.postId,
+      reportedBy: userId,
       reason: body.reason,
     });
     await commentReport.save();
@@ -143,6 +157,7 @@ exports.deleteComment = async (req, res) => {
     if (!comment) {
       throw new ApiError("Comment not found", httpStatus.status.NOT_FOUND);
     }
+    await CommentReport.deleteMany({ commentId: commentId });
     return comment;
   } catch (err) {
     if (err instanceof ApiError) {

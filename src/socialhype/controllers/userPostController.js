@@ -5,14 +5,28 @@ const TaggedPost = require("../models/taggedPost.js");
 const PostReport = require("../models/postReport.js");
 const Comment = require("../models/comment.js");
 const Post = require("../models/userPost.js");
+const cloudinary = require("../../../utils/cloudinaryUpload.js");
 
 // Create a new post
 exports.createPost = async (req, res) => {
-  const body = req.body;
   try {
     const userId = req.user.id;
+    const body = { ...req.body };
 
-    const newPost = new Post({ ...body, author: userId });
+    body.media = Array.isArray(body.media) ? body.media : [];
+
+    if (req.files?.media?.length > 0) {
+      const uploadResult = await cloudinary(req.files.media[0].buffer);
+      if (uploadResult?.secure_url) {
+        body.media.push(uploadResult.secure_url);
+      }
+    }
+
+    const newPost = new Post({
+      ...body,
+      author: userId,
+    });
+
     await newPost.save();
     return newPost;
   } catch (err) {
@@ -21,6 +35,43 @@ exports.createPost = async (req, res) => {
     }
     throw new ApiError(
       `Failed to create post: ${err.message}`,
+      httpStatus.status.INTERNAL_SERVER_ERROR
+    );
+  }
+};
+
+// Get all posts
+exports.getAllPosts = async (req, res) => {
+  const { userId } = req.params;
+  const { page = 1, limit = 10 } = req.query;
+  const skip = (page - 1) * limit;
+
+  try {
+    const totalPosts = await Post.countDocuments({ author: userId, status: { $ne: "deleted" } });
+    const posts = await Post.find({ author: userId, status: { $ne: "deleted" } })
+      .populate("author", "fullName username email profilePicture")
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .skip(skip);
+
+    if (!posts || posts.length === 0) {
+      throw new ApiError("No posts found", httpStatus.status.NOT_FOUND);
+    }
+
+    return {
+      posts,
+      pagination: {
+        currentPage: page,
+        totalPages: Math.ceil(totalPosts / limit),
+        totalPosts,
+      },
+    };
+  } catch (err) {
+    if (err instanceof ApiError) {
+      throw err;
+    }
+    throw new ApiError(
+      `Failed to fetch posts: ${err.message}`,
       httpStatus.status.INTERNAL_SERVER_ERROR
     );
   }

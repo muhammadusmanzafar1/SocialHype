@@ -4,14 +4,15 @@ const CommunityPost = require('../../socialhype/models/communityPost');
 const ApiError = require('../../../utils/ApiError');
 const User = require('../../auth/models/user');
 const httpStatus = require('http-status');
+const { log } = require('winston');
 
 exports.getCommunityMemberById = async (req, res) => {
     try {
         const { id } = req.params;
-        const { page = 1, limit = 10 } = req.query;
+        const { page = 1, limit = 10,  } = req.query;
 
         const members = await CommunityMember.find({ communityId: id })
-            .populate('userId', "fullName username profilePicture email joiningDate lastActiveAt")
+            .populate('userId')
             .skip((page - 1) * limit)
             .limit(parseInt(limit));
 
@@ -98,16 +99,35 @@ exports.deleteCommunityMember = async (req, res) => {
 exports.getCommunityModerators = async (req, res) => {
     try {
         const { communityId } = req.params;
+        const { page = 1, limit = 10 } = req.query;
+        const skip = (page - 1) * limit;
         const members = await CommunityMember.find({ communityId, role: 'moderator' })
         .populate('userId')
-        .populate('communityId');
-        if (!members || members.length === 0) {
-            throw new ApiError('No moderators found for this community', httpStatus.status.NOT_FOUND);
-        }
-        
-        return members;
-    }
-    catch (error) {
+        .limit(parseInt(limit))
+        .skip(skip);
+
+        const totalMembers = members.length || 0;
+
+        const userIds = members.map(member => member.userId);
+
+        return {users: userIds?.map(user => ({
+            _id: user._id,
+            username: user.username,
+            fullName: user.fullName,
+            email: user.email,
+            profilePicture: user.profilePicture || null,
+            gender: user.gender,
+            status: user.status,
+            createdOn: user.createdAt,
+            lastActive: user.lastActive || "N/A",
+            totalPosts: user.postsCount,
+            accountStatus: user.isDisable ? "isDisable" : "Enabled",
+            userType: user.userType,
+        })), 
+        totalMembers,
+        totalPages: Math.ceil(totalMembers / limit),
+        currentPage: parseInt(page)} || [];
+    } catch (error) {
         if (error instanceof ApiError) {
             return error;
         }

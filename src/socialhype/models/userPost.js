@@ -4,7 +4,6 @@ const PostSchema = new mongoose.Schema({
   title: {
     type: String,
     required: true,
-    trim: true,
   },
   content: {
     type: String,
@@ -65,7 +64,14 @@ const PostSchema = new mongoose.Schema({
     enum: ['Public', 'Friends', 'Private', 'Restricted', 'disabled'],
     default: 'Public',
   },
-
+  viewCount: {
+    type: Number,
+    default: 0,
+  },
+  exclusive: {
+    type: Boolean,
+    default: false,
+  },
   reports: {
     type: [
       {

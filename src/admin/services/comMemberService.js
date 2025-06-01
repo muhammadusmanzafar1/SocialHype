@@ -99,23 +99,28 @@ exports.deleteCommunityMember = async (req, res) => {
         if (!Array.isArray(userIds) || userIds.length === 0) {
             throw new ApiError('User IDs must be a non-empty array', httpStatus.status.BAD_REQUEST);
         }
-        let memberList = []
-        for (const id of userIds) {
 
-            const communityMember = await CommunityMember.findOneAndDelete({ userId: id, communityId });
-            if (!communityMember) {
-                throw new ApiError('Community member not found', httpStatus.status.NOT_FOUND);
+        const deletedMembers = await Promise.all(userIds.map(async (id) => {
+            const member = await CommunityMember.findOneAndDelete({ userId: id, communityId });
+            if (!member) {
+                throw new ApiError(`Community member not found for userId ${id}`, httpStatus.status.NOT_FOUND);
             }
-            memberList.push(communityMember);
+            return member;
+        }));
 
+        await Promise.all(userIds.map(async (id) => {
             const posts = await CommunityPost.find({ postedBy: id, communityId });
-            await CommunityPost.deleteMany({ postedBy: id, communityId });
-            for (const post of posts) {
-                await CommunityReport.deleteMany({ postId: post._id });
-            }
-        }
+            const postIds = posts.map(post => post._id);
 
-        return memberList;
+            return Promise.all([
+                CommunityPost.deleteMany({ postedBy: id, communityId }),
+                CommunityReport.deleteMany({ postId: { $in: postIds } })
+            ]);
+        }));
+
+        await CommunityReport.deleteMany({ reportedBy: { $in: userIds }, communityId });
+
+        return deletedMembers;
     } catch (error) {
         if (error instanceof ApiError) {
             return error;

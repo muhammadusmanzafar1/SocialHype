@@ -31,7 +31,7 @@ exports.updateCommunityValidator = {
     avatarUrl: joi.string().uri().optional(),
     bannerUrl: joi.string().uri().optional(),
     fee: joi.number().min(0).default(0).optional(),
-    adminId: joi.string().required(),
+    adminId: joi.string().optional(),
     moderators: joi.array().items(joi.string()).optional().custom(coerceArray),
     members: joi.array().items(joi.string()).optional().custom(coerceArray),
   })

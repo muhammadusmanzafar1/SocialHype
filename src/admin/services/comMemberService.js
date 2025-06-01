@@ -5,11 +5,12 @@ const ApiError = require('../../../utils/ApiError');
 const User = require('../../auth/models/user');
 const httpStatus = require('http-status');
 const { log } = require('winston');
+const CommunityReport = require('../../socialhype/models/communityReport');
 
 exports.getCommunityMemberById = async (req, res) => {
     try {
         const { id } = req.params;
-        const { page = 1, limit = 10,  } = req.query;
+        const { page = 1, limit = 10, } = req.query;
 
         const members = await CommunityMember.find({ communityId: id })
             .populate('userId')
@@ -25,23 +26,23 @@ exports.getCommunityMemberById = async (req, res) => {
 
         return {
             users: members.map(member => ({
-              _id: member._id,
-              username: member.userId?.username || null,
-              fullName: member.userId?.fullName || null,
-              email: member.userId?.email || null,
-              profilePicture: member.userId?.profilePicture || null,
-              gender: member.userId?.gender || null,
-              status: member.userId?.status || null,
-              createdOn: member.userId?.createdAt || null,
-              lastActive: member.lastActiveAt || "N/A",
-              totalPosts: member.userId?.postsCount || 0,
-              accountStatus: member.isDisabled ? "Disabled" : "Enabled",
-              userType: member.userId?.userType || null,
+                _id: member._id,
+                username: member.userId?.username || null,
+                fullName: member.userId?.fullName || null,
+                email: member.userId?.email || null,
+                profilePicture: member.userId?.profilePicture || null,
+                gender: member.userId?.gender || null,
+                status: member.userId?.status || null,
+                createdOn: member.userId?.createdAt || null,
+                lastActive: member.lastActiveAt || "N/A",
+                totalPosts: member.userId?.postsCount || 0,
+                accountStatus: member.isDisabled ? "Disabled" : "Enabled",
+                userType: member.userId?.userType || null,
             })),
             totalMembers,
             totalPages,
             currentPage: parseInt(page),
-          };          
+        };
     } catch (error) {
         if (error instanceof ApiError) {
             return error;
@@ -92,15 +93,29 @@ exports.disableCommunityMember = async (req, res) => {
 
 exports.deleteCommunityMember = async (req, res) => {
     try {
-        const { userId, communityId } = req.body;
-        const communityMember = await CommunityMember.findOneAndDelete({ userId, communityId });
-        if (!communityMember) {
-            throw new ApiError('Community member not found', httpStatus.status.NOT_FOUND);
+        const { communityId } = req.params;
+        const { userIds = [] } = req.body;
+
+        if (!Array.isArray(userIds) || userIds.length === 0) {
+            throw new ApiError('User IDs must be a non-empty array', httpStatus.status.BAD_REQUEST);
+        }
+        let memberList = []
+        for (const id of userIds) {
+
+            const communityMember = await CommunityMember.findOneAndDelete({ userId: id, communityId });
+            if (!communityMember) {
+                throw new ApiError('Community member not found', httpStatus.status.NOT_FOUND);
+            }
+            memberList.push(communityMember);
+
+            const posts = await CommunityPost.find({ postedBy: id, communityId });
+            await CommunityPost.deleteMany({ postedBy: id, communityId });
+            for (const post of posts) {
+                await CommunityReport.deleteMany({ postId: post._id });
+            }
         }
 
-        await CommunityPost.deleteMany({ postedBy: userId, communityId });
-
-        return communityMember;
+        return memberList;
     } catch (error) {
         if (error instanceof ApiError) {
             return error;
@@ -115,31 +130,33 @@ exports.getCommunityModerators = async (req, res) => {
         const { page = 1, limit = 10 } = req.query;
         const skip = (page - 1) * limit;
         const members = await CommunityMember.find({ communityId, role: 'moderator' })
-        .populate('userId')
-        .limit(parseInt(limit))
-        .skip(skip);
+            .populate('userId')
+            .limit(parseInt(limit))
+            .skip(skip);
 
         const totalMembers = members.length || 0;
 
         const userIds = members.map(member => member.userId);
 
-        return {users: userIds?.map(user => ({
-            _id: user._id,
-            username: user.username,
-            fullName: user.fullName,
-            email: user.email,
-            profilePicture: user.profilePicture || null,
-            gender: user.gender,
-            status: user.status,
-            createdOn: user.createdAt,
-            lastActive: user.lastActive || "N/A",
-            totalPosts: user.postsCount,
-            accountStatus: user.isDisable ? "isDisable" : "Enabled",
-            userType: user.userType,
-        })), 
-        totalMembers,
-        totalPages: Math.ceil(totalMembers / limit),
-        currentPage: parseInt(page)} || [];
+        return {
+            users: userIds?.map(user => ({
+                _id: user._id,
+                username: user.username,
+                fullName: user.fullName,
+                email: user.email,
+                profilePicture: user.profilePicture || null,
+                gender: user.gender,
+                status: user.status,
+                createdOn: user.createdAt,
+                lastActive: user.lastActive || "N/A",
+                totalPosts: user.postsCount,
+                accountStatus: user.isDisable ? "isDisable" : "Enabled",
+                userType: user.userType,
+            })),
+            totalMembers,
+            totalPages: Math.ceil(totalMembers / limit),
+            currentPage: parseInt(page)
+        } || [];
     } catch (error) {
         if (error instanceof ApiError) {
             return error;
@@ -162,8 +179,15 @@ exports.addCommunityMember = async (req, res) => {
         if (!community) {
             throw new ApiError('Community not found', httpStatus.status.NOT_FOUND);
         }
-        if (type !== 'moderator' && type !== 'member') {
+        if (type !== 'moderator' && type !== 'member' && type !== 'admin') {
             throw new ApiError('Invalid role type', httpStatus.status.BAD_REQUEST);
+        }
+        if (type === 'admin') {
+            const existingAdmin = await CommunityMember.findOneAndDelete({ communityId, role: 'admin' });
+            community.adminId = userIds[0];
+            const communityMember = new CommunityMember({ userId: userIds[0], communityId, role: type });
+            await communityMember.save();
+            return await community.save();
         }
         const addedMembers = [];
         for (const userId of userIds) {

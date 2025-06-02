@@ -29,7 +29,7 @@ router.get('/getAllPostReports/:postId', async (req, res) => {
 
 router.get('/getAllCommunityPostReports/:communityId', async (req, res) => {
     try {
-        const applications = await CommunityPostReport.getAllCommunityPostReport(req.params.communityId);
+        const applications = await CommunityPostReport.getAllCommunityPostReport(req);
         res.status(httpStatus.status.OK).json({
             isSuccess: true,
             message: 'Community applications fetched successfully',

@@ -12,10 +12,16 @@ exports.getCommunityPosts = async (req, res) => {
             .sort({ createdAt: -1 })
             .skip((page - 1) * limit)
             .limit(parseInt(limit));
-            if (!posts || posts.length === 0) {
-                throw new ApiError('No posts found for this community', httpStatus.status.NOT_FOUND);
+
+        const totalPosts = posts.length || 0;
+        return {
+            posts,
+            pagination: {
+                currentPage: page,
+                totalPages: Math.ceil(totalPosts / limit),
+                totalPosts,
             }
-        return posts;
+        };
     } catch (error) {
         if (error instanceof ApiError) {
             return error;

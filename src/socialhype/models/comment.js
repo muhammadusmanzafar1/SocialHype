@@ -29,6 +29,11 @@ const CommentSchema = new mongoose.Schema({
         ref: 'Post',
         required: true,
     },
+    pollId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Poll',
+        required: false,
+    },
     userId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',

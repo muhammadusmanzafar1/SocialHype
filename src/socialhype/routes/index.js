@@ -8,5 +8,8 @@ app.use("/comment", validate, require("./PostCommentRouter.js"));
 app.use("/community", validate, require("./UserCommunityRouter.js"));
 app.use("/challenge", validate, require("./hypeChallengeRouter.js"));
 app.use("/notification", validate, require("./notificationRouter.js"));
+app.use('/follower', validate, require('./followerRoute.js'));
+app.use("/story", validate, require("./storyRouter.js"));
+app.use("/poll", validate, require("./pollRouter.js"));
 
 module.exports = app;

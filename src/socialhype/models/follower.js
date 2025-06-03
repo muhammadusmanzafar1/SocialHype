@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
 const followerSchema = new mongoose.Schema(
     {
@@ -7,7 +7,7 @@ const followerSchema = new mongoose.Schema(
             ref: 'User',
             required: true,
         },
-        followerId: {
+        followerId: { // The user who is following
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User',
             required: true,
@@ -26,4 +26,4 @@ const followerSchema = new mongoose.Schema(
 );
 
 const Follower = mongoose.model('Follower', followerSchema);
-export default Follower;
+module.exports = Follower;

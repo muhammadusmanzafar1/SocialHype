@@ -212,4 +212,30 @@ router.delete('/leaveCommunity/:communityId', async (req, res) => {
       }
 });
 
+router.get('/searchCommunities', async (req, res) => {
+    try {
+        const communities = await userCommunityController.searchCommunities(req, res);
+        res.status(httpStatus.status.OK).json({
+          isSuccess: true,
+          message: "Communities Search Results Fetched Successfully!",
+          communities,
+        });
+    
+      } catch (error) {
+        if (error instanceof ApiError) {
+            return res.status(error.statusCode).json({
+              isSuccess: false,
+              error: {
+                message: error.message,
+                statusCode: error.statusCode,
+              },
+            });
+          }
+    
+        return res
+          .status(httpStatus.status.INTERNAL_SERVER_ERROR)
+          .json("Something went wrong!");
+      }
+});
+
 module.exports = router;

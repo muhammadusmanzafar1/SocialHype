@@ -254,3 +254,30 @@ exports.leaveCommunity = async (req, res) => {
         throw new ApiError(`Something went wrong while leaving the community ${error.message}`, error.statusCode || httpStatus.status.INTERNAL_SERVER_ERROR);
     }
 }
+
+exports.searchCommunities = async (req, res) => {
+    try {
+        const { search } = req.query;
+        if (!search) {
+            throw new ApiError('Search query is required', httpStatus.status.BAD_REQUEST);
+        }
+
+        const communities = await UserCommunity.find({
+            $or: [
+                { name: { $regex: search, $options: 'i' } },
+                { description: { $regex: search, $options: 'i' } }
+            ]
+        }).select('name description avatarUrl');
+
+        if (!communities || communities.length === 0) {
+            throw new ApiError('No communities found matching the search criteria', httpStatus.status.NOT_FOUND);
+        }
+
+        return communities;
+    } catch (error) {
+        if (error instanceof ApiError) {
+            throw error;
+        }
+        throw new ApiError(`Something went wrong while searching for communities ${error.message}`, error.statusCode || httpStatus.status.INTERNAL_SERVER_ERROR);
+    }
+}

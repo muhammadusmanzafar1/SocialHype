@@ -13,7 +13,6 @@ const communitySchema = new mongoose.Schema({
     },
     title: {
         type: String,
-        required: true,
       },
     caption: {
         type: String,

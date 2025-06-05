@@ -98,3 +98,20 @@ exports.markReportAsResolved = async (reportId) => {
         );
     }
 }
+
+exports.deleteReport = async (reportId) => {
+    try {
+        const report = await CommunityPostReport.findByIdAndDelete(reportId).lean();
+
+        if (!report) {
+            throw new ApiError('Report not found', httpStatus.status.NOT_FOUND);
+        }
+
+        return report;
+    } catch (error) {
+        throw new ApiError(
+            error.message || 'An error occurred while deleting the report',
+            error.statusCode || httpStatus.status.INTERNAL_SERVER_ERROR
+        );
+    }
+}

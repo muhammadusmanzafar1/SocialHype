@@ -93,4 +93,26 @@ router.patch('/markReportAsResolved/:reportId', async (req, res) => {
     }
 });
 
+router.delete('/deleteReport/:reportId', async (req, res) => {
+    try {
+        const report = await CommunityPostReport.deleteReport(req.params.reportId);
+        res.status(httpStatus.status.OK).json({
+            isSuccess: true,
+            message: 'Report deleted successfully',
+            data: report,
+        });
+    } catch (error) {
+        if (error instanceof ApiError) {
+            res.status(error.statusCode).json({
+                isSuccess: false,
+                message: error.message,
+            });
+        }
+        res.status(httpStatus.status.INTERNAL_SERVER_ERROR).json({
+            isSuccess: false,
+            message: 'Internal server error',
+        });
+    }
+});
+
 module.exports = router;

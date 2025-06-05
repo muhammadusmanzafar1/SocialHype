@@ -39,10 +39,12 @@ exports.getAllCommunityPostReport = async (req) => {
             .limit(limit)
             .lean();
 
+        const filteredReports = reports.filter(report => report.postId !== null);
+
         const totalReports = await CommunityPostReport.countDocuments({ communityId });
 
         return {
-            reports,
+            filteredReports,
             pagination: {
                 currentPage: page,
                 totalPages: Math.ceil(totalReports / limit),

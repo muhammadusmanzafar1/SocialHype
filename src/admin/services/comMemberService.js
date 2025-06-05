@@ -76,8 +76,8 @@ exports.getCommunityMemberById = async (req, res) => {
 
 exports.disableCommunityMember = async (req, res) => {
     try {
-        const { userId, communityId } = req.body;
-        const communityMember = await CommunityMember.findOne({ userId, communityId });
+        const { memberId } = req.params;
+        const communityMember = await CommunityMember.findById(memberId);
         if (!communityMember) {
             throw new ApiError('Community member not found', httpStatus.status.NOT_FOUND);
         }

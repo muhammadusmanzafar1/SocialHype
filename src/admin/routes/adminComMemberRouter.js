@@ -29,7 +29,7 @@ router.get('/getCommunityMembers/:id', async (req, res) => {
 //     }
 // });
 
-router.patch('/disableCommunityMember', async (req, res) => {
+router.patch('/disableCommunityMember/:memberId', async (req, res) => {
     try {
         const Members = await CommunityMember.disableCommunityMember(req, res);
         res.status(httpStatus.status.OK).json({ isSuccess: true, message: "Communities disabled successfully", Members });

@@ -27,7 +27,7 @@ exports.getAllCommunityPostReport = async (req) => {
     try {
         const skip = (page - 1) * limit;
 
-        const reports = await CommunityPostReport.find({ communityId })
+        let reports = await CommunityPostReport.find({ communityId })
             .populate({ 
                 path: 'postId', 
                 select: '-communityId', 
@@ -39,12 +39,12 @@ exports.getAllCommunityPostReport = async (req) => {
             .limit(limit)
             .lean();
 
-        const filteredReports = reports.filter(report => report.postId !== null);
+        reports = reports.filter(report => report.postId !== null);
 
         const totalReports = await CommunityPostReport.countDocuments({ communityId });
 
         return {
-            filteredReports,
+            reports,
             pagination: {
                 currentPage: page,
                 totalPages: Math.ceil(totalReports / limit),

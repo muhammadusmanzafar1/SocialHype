@@ -27,6 +27,7 @@ exports.getCommunityMemberById = async (req, res) => {
         return {
             users: members.map(member => ({
                 _id: member._id,
+                userId: member.userId?._id || null,
                 username: member.userId?.username || null,
                 fullName: member.userId?.fullName || null,
                 email: member.userId?.email || null,
@@ -146,6 +147,7 @@ exports.getCommunityModerators = async (req, res) => {
         return {
             users: userIds?.map(user => ({
                 _id: user._id,
+                userId: user._id,
                 username: user.username,
                 fullName: user.fullName,
                 email: user.email,

@@ -92,36 +92,26 @@ exports.disableCommunityMember = async (req, res) => {
     }
 }
 
-exports.deleteCommunityMember = async (req, res) => {
+exports.deleteCommunityMember = async (req) => {
     try {
-        const { communityId } = req.params;
-        const { userIds = [] } = req.body;
+        const { memberId } = req.params;
 
-        if (!Array.isArray(userIds) || userIds.length === 0) {
-            throw new ApiError('User IDs must be a non-empty array', httpStatus.status.BAD_REQUEST);
+        const memberData = await CommunityMember.findById(memberId);
+
+        const member = await CommunityMember.findOneAndDelete({ _id: memberId });
+        if (!member) {
+            throw new ApiError('Community member not found for userId', httpStatus.status.NOT_FOUND);
         }
 
-        const deletedMembers = await Promise.all(userIds.map(async (id) => {
-            const member = await CommunityMember.findOneAndDelete({ userId: id, communityId });
-            if (!member) {
-                throw new ApiError(`Community member not found for userId ${id}`, httpStatus.status.NOT_FOUND);
-            }
-            return member;
-        }));
+        const posts = await CommunityPost.find({ postedBy: memberData.userId, communityId: memberData.communityId });
+        const postIds = posts.map(post => post._id);
 
-        await Promise.all(userIds.map(async (id) => {
-            const posts = await CommunityPost.find({ postedBy: id, communityId });
-            const postIds = posts.map(post => post._id);
+        await Promise.all([
+            CommunityPost.deleteMany({ postedBy: memberData.userId, communityId: memberData.communityId }),
+            CommunityReport.deleteMany({ postId: { $in: postIds } })
+        ]);
 
-            return Promise.all([
-                CommunityPost.deleteMany({ postedBy: id, communityId }),
-                CommunityReport.deleteMany({ postId: { $in: postIds } })
-            ]);
-        }));
-
-        await CommunityReport.deleteMany({ reportedBy: { $in: userIds }, communityId });
-
-        return deletedMembers;
+        return member;
     } catch (error) {
         if (error instanceof ApiError) {
             return error;

@@ -1,7 +1,7 @@
 const httpStatus = require('http-status');
 const ApiError = require('../../../utils/ApiError');
 const CommunityPost = require('../../socialhype/models/communityPost');
-const postReport = require('../../socialhype/models/postReport');
+const postReport = require('../../socialhype/models/communityReport');
 
 exports.getCommunityPosts = async (req, res) => {
     try {

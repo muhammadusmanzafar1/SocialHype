@@ -33,7 +33,7 @@ exports.getAllCommunityPostReport = async (req) => {
             .limit(limit)
             .lean();
 
-        const totalReports = reports.length || 0;
+        const totalReports = await CommunityPostReport.countDocuments({ communityId });
 
         return {
             reports,

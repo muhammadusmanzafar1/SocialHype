@@ -13,7 +13,7 @@ exports.getCommunityPosts = async (req, res) => {
             .skip((page - 1) * limit)
             .limit(parseInt(limit));
 
-        const totalPosts = posts.length || 0;
+        const totalPosts = await CommunityPost.countDocuments({ communityId, status: 'active' });
         return {
             posts,
             pagination: {

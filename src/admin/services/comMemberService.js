@@ -21,7 +21,7 @@ exports.getCommunityMemberById = async (req, res) => {
             throw new ApiError('No members found for this community', httpStatus.status.NOT_FOUND);
         }
 
-        const totalMembers = members.length || 0;
+        const totalMembers = await CommunityMember.countDocuments({ communityId: id });
         const totalPages = Math.ceil(totalMembers / limit);
 
         return {
@@ -139,7 +139,7 @@ exports.getCommunityModerators = async (req, res) => {
             .limit(parseInt(limit))
             .skip(skip);
 
-        const totalMembers = members.length || 0;
+        const totalMembers = await CommunityMember.countDocuments({ communityId, role: 'moderator' });
 
         const userIds = members.map(member => member.userId);
 

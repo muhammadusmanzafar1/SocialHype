@@ -23,10 +23,16 @@ exports.getAllCommunityPostReport = async (req) => {
     const { communityId } = req.params;
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
+
     try {
         const skip = (page - 1) * limit;
+
         const reports = await CommunityPostReport.find({ communityId })
-            .populate({ path: 'postId', select: '-communityId', populate: { path: 'postedBy', select: 'fullName username email profilePicture' } })
+            .populate({ 
+                path: 'postId', 
+                select: '-communityId', 
+                populate: { path: 'postedBy', select: 'fullName username email profilePicture' } 
+            })
             .populate({ path: 'reportedBy', select: 'fullName username email profilePicture' })
             .sort({ createdAt: -1 })
             .skip(skip)
@@ -37,17 +43,21 @@ exports.getAllCommunityPostReport = async (req) => {
 
         return {
             reports,
-            totalReports,
-            currentPage: page,
-            totalPages: Math.ceil(totalReports / limit),
+            pagination: {
+                currentPage: page,
+                totalPages: Math.ceil(totalReports / limit),
+                totalReports,
+            }
         };
+
     } catch (error) {
         throw new ApiError(
             error.message || 'An error occurred while fetching post reports',
             error.statusCode || httpStatus.status.INTERNAL_SERVER_ERROR
         );
     }
-}
+};
+
 
 exports.getAllCommentReport = async (commentId) => {
     try {

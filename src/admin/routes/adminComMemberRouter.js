@@ -53,7 +53,7 @@ router.delete('/deleteCommunityMember/:memberId', async (req, res) => {
     }
 });
 
-router.delete('/deleteCommunityMembers/:communityId', async (req, res) => {
+router.put('/deleteCommunityMembers/:communityId', async (req, res) => {
     try{
         const Members = await CommunityMember.deleteCommunityMembers(req, res);
         res.status(httpStatus.status.OK).json({ isSuccess: true, message: "Communities deleted successfully", Members });

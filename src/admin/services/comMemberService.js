@@ -94,13 +94,14 @@ exports.disableCommunityMember = async (req, res) => {
 
 exports.deleteCommunityMembers = async (req) => {
     try {
+        const { communityId } = req.params;
         const { userIds = [] } = req.body;
 
         if (!Array.isArray(userIds) || userIds.length === 0) {
             throw new ApiError("No userIds provided", httpStatus.status.BAD_REQUEST);
         }
 
-        const members = await CommunityMember.find({ userId: { $in: userIds } });
+        const members = await CommunityMember.find({ userId: { $in: userIds }, communityId });
 
         if (members.length === 0) {
             throw new ApiError("No matching community members found", httpStatus.status.NOT_FOUND);
@@ -149,9 +150,9 @@ exports.deleteCommunityMember = async (req) => {
     try {
         const { memberId } = req.params;
 
-        const memberData = await CommunityMember.findById(memberId);
+        const memberData = await CommunityMember.findOne({ userId: memberId });
 
-        const member = await CommunityMember.findOneAndDelete({ _id: memberId });
+        const member = await CommunityMember.findOneAndDelete({ _id: memberData._id });
         if (!member) {
             throw new ApiError('Community member not found for userId', httpStatus.status.NOT_FOUND);
         }

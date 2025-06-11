@@ -92,7 +92,7 @@ exports.disableCommunityMember = async (req, res) => {
     }
 }
 
-exports.deleteCommunityMember = async (req) => {
+exports.deleteCommunityMembers = async (req) => {
     try {
         const { userIds = [] } = req.body;
 
@@ -137,6 +137,34 @@ exports.deleteCommunityMember = async (req) => {
         await Promise.all([...deletionTasks, ...postCleanupTasks]);
 
         return members;
+    } catch (error) {
+        if (error instanceof ApiError) {
+            return error;
+        }
+        throw new ApiError(error.message, error.statusCode || httpStatus.status.INTERNAL_SERVER_ERROR);
+    }
+}
+
+exports.deleteCommunityMember = async (req) => {
+    try {
+        const { memberId } = req.params;
+
+        const memberData = await CommunityMember.findById(memberId);
+
+        const member = await CommunityMember.findOneAndDelete({ _id: memberId });
+        if (!member) {
+            throw new ApiError('Community member not found for userId', httpStatus.status.NOT_FOUND);
+        }
+
+        const posts = await CommunityPost.find({ postedBy: memberData.userId, communityId: memberData.communityId });
+        const postIds = posts.map(post => post._id);
+
+        await Promise.all([
+            CommunityPost.deleteMany({ postedBy: memberData.userId, communityId: memberData.communityId }),
+            CommunityReport.deleteMany({ postId: { $in: postIds } })
+        ]);
+
+        return member;
     } catch (error) {
         if (error instanceof ApiError) {
             return error;

@@ -41,7 +41,7 @@ router.patch('/disableCommunityMember/:memberId', async (req, res) => {
     }
 });
 
-router.delete('/deleteCommunityMember', async (req, res) => {
+router.delete('/deleteCommunityMember/:memberId', async (req, res) => {
     try {
         const Members = await CommunityMember.deleteCommunityMember(req, res);
         res.status(httpStatus.status.OK).json({ isSuccess: true, message: "Communities deleted successfully", Members });
@@ -52,6 +52,18 @@ router.delete('/deleteCommunityMember', async (req, res) => {
         return res.status(httpStatus.status.INTERNAL_SERVER_ERROR).json({ message: error.message || "Server Error" });
     }
 });
+
+router.delete('/deleteCommunityMembers', async (req, res) => {
+    try{
+        const Members = await CommunityMember.deleteCommunityMembers(req, res);
+        res.status(httpStatus.status.OK).json({ isSuccess: true, message: "Communities deleted successfully", Members });
+    } catch (error) {
+        if (error instanceof ApiError) {
+            return res.status(error.statusCode).json({ message: error.message });
+        }
+        return res.status(httpStatus.status.INTERNAL_SERVER_ERROR).json({ message: error.message || "Server Error" });
+    }
+})
 
 router.get('/getCommunityModerators/:communityId', async (req, res) => {
     try {

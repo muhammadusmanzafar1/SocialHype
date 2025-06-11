@@ -5,11 +5,6 @@ exports.getCommunityMember = async (req, res) => {
     return retVal;
 }
 
-// exports.addCommunityMember = async (req, res) => {
-//     const retVal = await CommunityMember.addCommunityMember(req, res);
-//     return retVal;
-// }
-
 exports.disableCommunityMember = async (req, res) => {
     const retVal = await CommunityMember.disableCommunityMember(req, res);
     return retVal;
@@ -17,6 +12,11 @@ exports.disableCommunityMember = async (req, res) => {
 
 exports.deleteCommunityMember = async (req, res) => {
     const retVal = await CommunityMember.deleteCommunityMember(req, res);
+    return retVal;
+}
+
+exports.deleteCommunityMembers = async (req, res) => {
+    const retVal = await CommunityMember.deleteCommunityMembers(req, res);
     return retVal;
 }
 

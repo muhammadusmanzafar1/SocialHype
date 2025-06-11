@@ -63,7 +63,7 @@ exports.getCommunityDetails = async (req, res) => {
     try {
         const { communityId } = req.params;
         const communityDetails = await community.findById(communityId)
-            .populate("adminId", "fullName username name email profilePicture")
+            .populate("adminId", "fullName username name email profilePicture userType")
             .sort({ createdAt: -1 })
             .select("-__v");
         if (!communityDetails) {
@@ -80,13 +80,15 @@ exports.getCommunityDetails = async (req, res) => {
                 _id: m.userId._id,
                 fullName: m.userId.fullName,
                 username: m.userId.username,
-                profilePicture: m.userId.profilePicture
+                profilePicture: m.userId.profilePicture,
+                userType: m.userId.userType
             }) : null).filter(Boolean),
             moderator: moderator.map(m => m.userId ? ({
                 _id: m.userId._id,
                 fullName: m.userId.fullName,
                 username: m.userId.username,
-                profilePicture: m.userId.profilePicture
+                profilePicture: m.userId.profilePicture,
+                userType: m.userId.userType
             }) : null).filter(Boolean),
         };
         return communityData;

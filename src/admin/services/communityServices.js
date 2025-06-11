@@ -233,13 +233,13 @@ exports.updateCommunity = async (req, res) => {
         let avatarImageUrl = '';
         let bannerImageUrl = '';
         if (req.files?.avatar?.[0]) {
-            const uploadAvatar = await uploadToCloudinary(req.files.avatar[0].buffer);
+            const uploadAvatar = await uploadToCloudinary(req.files.avatar[0].buffer, req.files.avatar[0].mimetype);
             avatarImageUrl = uploadAvatar.secure_url;
             body.avatarUrl = avatarImageUrl;
         }
 
         if (req.files?.banner?.[0]) {
-            const uploadBanner = await uploadToCloudinary(req.files.banner[0].buffer);
+            const uploadBanner = await uploadToCloudinary(req.files.banner[0].buffer, req.files.banner[0].mimetype);
             bannerImageUrl = uploadBanner.secure_url;
             body.bannerUrl = bannerImageUrl;
         }

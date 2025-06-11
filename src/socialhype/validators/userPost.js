@@ -2,7 +2,6 @@ const Joi = require('joi');
 const mongoose = require('mongoose');
 
 exports.postValidationSchema = Joi.object({
-  title: Joi.string().trim().required(),
   content: Joi.string().trim().required(),
   media: Joi.array().items(Joi.string().uri()).default([]),
   isHypeChallenge: Joi.boolean().default(false),
@@ -14,7 +13,15 @@ exports.postValidationSchema = Joi.object({
       return value;
     })
     .optional(),
-  tags: Joi.array().items(Joi.string()).default([]),
+  interests: Joi.array().items(Joi.string()).default([]),
+  taggedPeople: Joi.array()
+    .items(Joi.string().custom((value, helpers) => {
+      if (!mongoose.Types.ObjectId.isValid(value)) {
+        return helpers.error('any.invalid');
+      }
+      return value;
+    }))
+    .default([]),
   status: Joi.string()
     .valid('Public', 'Friends', 'Private', 'Restricted', 'disabled')
     .default('Public'),

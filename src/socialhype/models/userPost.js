@@ -1,10 +1,6 @@
 const mongoose = require('mongoose');
 
 const PostSchema = new mongoose.Schema({
-  title: {
-    type: String,
-    required: true,
-  },
   content: {
     type: String,
     required: true,
@@ -55,7 +51,7 @@ const PostSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
-  tags: {
+  interests: {
     type: [String],
     default: [],
   },

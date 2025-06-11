@@ -7,7 +7,7 @@ const validate = require("../validators/userPost.js")
 const upload = require("../../../middlewares/upload.js");
 
 
-router.post('/createPost', upload.fields([ { name: 'media', maxCount: 1 } ]), async (req, res) => {
+router.post('/createPost', upload.fields([ { name: 'media', maxCount: 2 } ]), async (req, res) => {
   const { error, value } = validate.postValidationSchema.validate(req.body);
 
 if (error) {

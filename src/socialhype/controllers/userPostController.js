@@ -11,23 +11,35 @@ const cloudinary = require("../../../utils/cloudinaryUpload.js");
 exports.createPost = async (req, res) => {
   try {
     const userId = req.user.id;
-    const body = { ...req.body };
+    const body = {taggedPeople: [], ...req.body };
 
     body.media = Array.isArray(body.media) ? body.media : [];
 
     if (req.files?.media?.length > 0) {
-      const uploadResult = await cloudinary(req.files.media[0].buffer);
-      if (uploadResult?.secure_url) {
-        body.media.push(uploadResult.secure_url);
+      for (const file of req.files.media) {
+        const uploadResult = await cloudinary(file.buffer, file.mimetype);
+        if (uploadResult?.secure_url) {
+          body.media.push(uploadResult.secure_url);
+        }
       }
     }
-
+    
     const newPost = new Post({
       ...body,
       author: userId,
     });
 
     await newPost.save();
+
+    if (Array.isArray(body.taggedPeople) && body.taggedPeople.length > 0) {
+      const taggedPosts = body.taggedPeople.map((taggedUserId) => ({
+        postId: newPost._id,
+        taggedUserId,
+        taggedByUserId: userId,
+      }));
+      await TaggedPost.insertMany(taggedPosts);
+    }
+
     return newPost;
   } catch (err) {
     if (err instanceof ApiError) {

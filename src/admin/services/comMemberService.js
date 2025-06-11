@@ -94,24 +94,49 @@ exports.disableCommunityMember = async (req, res) => {
 
 exports.deleteCommunityMember = async (req) => {
     try {
-        const { memberId } = req.params;
+        const { userIds = [] } = req.body;
 
-        const memberData = await CommunityMember.findById(memberId);
-
-        const member = await CommunityMember.findOneAndDelete({ _id: memberId });
-        if (!member) {
-            throw new ApiError('Community member not found for userId', httpStatus.status.NOT_FOUND);
+        if (!Array.isArray(userIds) || userIds.length === 0) {
+            throw new ApiError("No userIds provided", httpStatus.status.BAD_REQUEST);
         }
 
-        const posts = await CommunityPost.find({ postedBy: memberData.userId, communityId: memberData.communityId });
-        const postIds = posts.map(post => post._id);
+        const members = await CommunityMember.find({ userId: { $in: userIds } });
 
-        await Promise.all([
-            CommunityPost.deleteMany({ postedBy: memberData.userId, communityId: memberData.communityId }),
-            CommunityReport.deleteMany({ postId: { $in: postIds } })
-        ]);
+        if (members.length === 0) {
+            throw new ApiError("No matching community members found", httpStatus.status.NOT_FOUND);
+        }
 
-        return member;
+        for (const member of members) {
+            const communityData = await Community.findById(member.communityId);
+            if (communityData?.adminId?.toString() === member.userId.toString()) {
+                throw new ApiError(
+                    `Cannot delete user ${member.userId}: user is admin of community ${communityData.name}`,
+                    httpStatus.status.FORBIDDEN
+                );
+            }
+        }
+
+        const deletionTasks = [];
+        const postCleanupTasks = [];
+
+        for (const member of members) {
+            const userId = member.userId;
+            const communityId = member.communityId;
+
+            deletionTasks.push(CommunityMember.deleteOne({ _id: member._id }));
+
+            const posts = await CommunityPost.find({ postedBy: userId, communityId });
+            const postIds = posts.map(post => post._id);
+
+            postCleanupTasks.push(
+                CommunityPost.deleteMany({ postedBy: userId, communityId }),
+                CommunityReport.deleteMany({ postId: { $in: postIds } })
+            );
+        }
+
+        await Promise.all([...deletionTasks, ...postCleanupTasks]);
+
+        return members;
     } catch (error) {
         if (error instanceof ApiError) {
             return error;

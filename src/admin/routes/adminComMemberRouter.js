@@ -41,7 +41,7 @@ router.patch('/disableCommunityMember/:memberId', async (req, res) => {
     }
 });
 
-router.delete('/deleteCommunityMember/:memberId', async (req, res) => {
+router.delete('/deleteCommunityMember', async (req, res) => {
     try {
         const Members = await CommunityMember.deleteCommunityMember(req, res);
         res.status(httpStatus.status.OK).json({ isSuccess: true, message: "Communities deleted successfully", Members });

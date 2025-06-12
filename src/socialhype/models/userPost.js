@@ -19,7 +19,7 @@ const PostSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
-  challengeId : {
+  challengeId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'HypeChallenge',
   },
@@ -42,11 +42,16 @@ const PostSchema = new mongoose.Schema({
     ],
     default: [],
   },
-  sharedBy: {
-    type: [mongoose.Schema.Types.ObjectId],
+  taggedPeople: [{
+    type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     default: [],
-  },
+  }],
+  sharedBy: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: [],
+  }],
   shareCount: {
     type: Number,
     default: 0,
@@ -68,15 +73,12 @@ const PostSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
-  reports: {
-    type: [
-      {
-        user: { type: mongoose.Schema.Types.ObjectId, ref: 'PostReport' },
-        createdAt: { type: Date, default: Date.now },
-      },
-    ],
-    default: [],
-  },
+  reports: [
+    {
+      report: { type: mongoose.Schema.Types.ObjectId, ref: 'PostReport' },
+      createdAt: { type: Date, default: Date.now },
+    },
+  ],
   createdAt: {
     type: Date,
     default: Date.now,

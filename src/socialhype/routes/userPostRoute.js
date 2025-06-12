@@ -198,7 +198,7 @@ router.get("/savedPosts/:userId", async (req, res) => {
 });
 
 
-router.get(" /api/posts/tagged/:userId", async (req, res) => {
+router.get("/api/posts/tagged/:userId", async (req, res) => {
     try {
       const user = await postController.getTaggedPosts(req, res);
       res.status(httpStatus.status.OK).json({

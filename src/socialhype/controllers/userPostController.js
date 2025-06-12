@@ -11,9 +11,10 @@ const cloudinary = require("../../../utils/cloudinaryUpload.js");
 exports.createPost = async (req, res) => {
   try {
     const userId = req.user.id;
-    const body = {taggedPeople: [], ...req.body };
+    const body = { ...req.body };
 
-    body.media = Array.isArray(body.media) ? body.media : [];
+    body.media = Array.isArray(body.media) ? [...body.media] : [];
+    body.taggedPeople = Array.isArray(body.taggedPeople) ? body.taggedPeople : [];
 
     if (req.files?.media?.length > 0) {
       for (const file of req.files.media) {
@@ -27,21 +28,14 @@ exports.createPost = async (req, res) => {
     const newPost = new Post({
       ...body,
       author: userId,
+      taggedPeople: body.taggedPeople,
     });
 
     await newPost.save();
 
-    if (Array.isArray(body.taggedPeople) && body.taggedPeople.length > 0) {
-      const taggedPosts = body.taggedPeople.map((taggedUserId) => ({
-        postId: newPost._id,
-        taggedUserId,
-        taggedByUserId: userId,
-      }));
-      await TaggedPost.insertMany(taggedPosts);
-    }
-
     return newPost;
   } catch (err) {
+    console.error("Create Post Error:", err);
     if (err instanceof ApiError) {
       throw err;
     }
@@ -62,6 +56,7 @@ exports.getAllPosts = async (req, res) => {
     const totalPosts = await Post.countDocuments({ author: userId, status: { $ne: "deleted" } });
     const posts = await Post.find({ author: userId, status: { $ne: "deleted" } })
       .populate("author", "fullName username email profilePicture")
+      .populate("taggedPeople", "fullName username")
       .sort({ createdAt: -1 })
       .limit(limit)
       .skip(skip);
@@ -93,7 +88,7 @@ exports.getAllPosts = async (req, res) => {
 exports.getPostDetail = async (req, res) => {
   const { postId } = req.params;
   try {
-    const post = await Post.findById(postId).populate("author");
+    const post = await Post.findById(postId).populate("author").populate("taggedPeople", "fullName username");
     if (!post) {
       throw new ApiError(
         "Post not found",
@@ -121,7 +116,7 @@ exports.updatePost = async (req, res) => {
       postId,
       { ...body },
       { new: true, runValidators: true }
-    ).populate("author");
+    ).populate("author").populate("taggedPeople", "fullName username");
     if (!updatedPost) {
       throw new ApiError(
         "Post not found",

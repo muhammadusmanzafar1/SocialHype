@@ -6,11 +6,11 @@ const taggedPostSchema = new mongoose.Schema({
     ref: 'Post',
     required: true
   },
-  taggedUserId: {
+  taggedUserId: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true
-  },
+  }],
   taggedByUserId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',

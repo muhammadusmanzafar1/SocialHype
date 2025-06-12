@@ -2,21 +2,29 @@ const httpStatus = require('http-status');
 const ApiError = require('../../../utils/ApiError');
 const followers = require('../models/follower');
 
-exports.getFollowers = async (req, res) => {
-    const userId = req.params.userId;
+exports.getFollowing = async (req, res) => {
+    const userId = req.user._id;
+    const searchQuery = req.query.search || ''; 
 
     if (!userId) {
         throw new ApiError("User ID is required", httpStatus.status.BAD_REQUEST);
     }
 
     try {
-        const followersList = await followers.find({ userId: userId }).populate('followerId', 'username profilePicture');
-        
-        if (!followersList || followersList.length === 0) {
+        const followingList = await followers.find({ userId: userId })
+            .populate({
+                path: 'followerId',
+                select: 'username profilePicture',
+                match: { username: { $regex: searchQuery, $options: 'i' } } 
+            });
+
+        const filteredFollowings = followingList.filter(f => f.followerId);
+
+        if (!filteredFollowings || filteredFollowings.length === 0) {
             return [];
         }
 
-        return followersList;
+        return filteredFollowings;
 
     } catch (error) {
         if (error instanceof ApiError) {
@@ -26,21 +34,21 @@ exports.getFollowers = async (req, res) => {
     }
 }
 
-exports.getFollowing = async (req, res) => {
-    const userId = req.params.userId;
+exports.getFollowers = async (req, res) => {
+    const userId = req.user._id;
 
     if (!userId) {
         throw new ApiError( "User ID is required", httpStatus.status.BAD_REQUEST);
     }
 
     try {
-        const followingList = await followers.find({ followerId: userId }).populate('userId', 'username profilePicture');
+        const followersList = await followers.find({ followerId: userId }).populate('userId', 'username profilePicture');
         
-        if (!followingList || followingList.length === 0) {
+        if (!followersList || followersList.length === 0) {
             return  [];
         }
 
-        return followingList;
+        return followersList;
 
     } catch (error) {
         if (error instanceof ApiError) {
@@ -50,13 +58,14 @@ exports.getFollowing = async (req, res) => {
     }
 }
 
-exports.followUser = async (userId, followerId) => {
-    if (!userId || !followerId) {
+exports.followUser = async (userId, followingId) => {
+
+    if (!followingId) {
         throw new ApiError("User ID and Follower ID are required", httpStatus.status.BAD_REQUEST);
     }
 
     try {
-        const existingFollow = await followers.findOne({ userId, followerId });
+        const existingFollow = await followers.findOne({ userId, followingId });
 
         if (existingFollow) {
             throw new ApiError("You are already following this user", httpStatus.status.BAD_REQUEST);
@@ -64,7 +73,7 @@ exports.followUser = async (userId, followerId) => {
 
         const newFollow = new followers({
             userId,
-            followerId,
+            followerId: followingId,
             status: 'pending'
         });
 
@@ -86,7 +95,7 @@ exports.acceptFollowRequest = async (userId, followerId, status) => {
     }
 
     try {
-        const followRequest = await followers.findOne({ userId, followerId });
+        const followRequest = await followers.findOne({ userId, followerId, status: 'pending' });
 
         if (!followRequest) {
             throw new ApiError("Follow request not found", httpStatus.status.NOT_FOUND);

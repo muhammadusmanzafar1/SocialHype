@@ -4,7 +4,7 @@ const httpStatus = require('http-status');
 const ApiError = require('../../../utils/ApiError');
 const followerController = require('../controllers/followerController');
 
-router.get('/getFollowers/:userId', async (req, res) => {
+router.get('/getFollowers', async (req, res) => {
     try {
         const followers = await followerController.getFollowers(req, res);
         res.status(httpStatus.status.OK).json({
@@ -26,7 +26,7 @@ router.get('/getFollowers/:userId', async (req, res) => {
     }
 });
 
-router.get('/getFollowing/:userId', async (req, res) => {
+router.get('/getFollowing', async (req, res) => {
     try {
         const following = await followerController.getFollowing(req, res);
         res.status(httpStatus.status.OK).json({
@@ -50,9 +50,10 @@ router.get('/getFollowing/:userId', async (req, res) => {
 
 router.post('/followUser', async (req, res) => {
     try {
-        const { userId, followerId } = req.body;
+        const { followingId } = req.body;
+        const userId = req.user._id;
 
-        const followResult = await followerController.followUser(userId, followerId);
+        const followResult = await followerController.followUser(userId, followingId);
         
         res.status(httpStatus.status.OK).json({
             isSuccess: true,

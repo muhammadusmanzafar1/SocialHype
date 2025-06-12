@@ -14,7 +14,7 @@ exports.getFollowing = async (req, res) => {
         const followingList = await followers.find({ userId: userId })
             .populate({
                 path: 'followerId',
-                select: 'username profilePicture',
+                select: 'username fullName profilePicture',
                 match: { username: { $regex: searchQuery, $options: 'i' } } 
             });
 
@@ -42,7 +42,7 @@ exports.getFollowers = async (req, res) => {
     }
 
     try {
-        const followersList = await followers.find({ followerId: userId }).populate('userId', 'username profilePicture');
+        const followersList = await followers.find({ followerId: userId }).populate('userId', 'username fullName profilePicture');
         
         if (!followersList || followersList.length === 0) {
             return  [];
@@ -77,7 +77,14 @@ exports.followUser = async (userId, followingId) => {
             status: 'pending'
         });
 
-        await newFollow.save();
+        try {
+            await newFollow.save();
+        } catch (error) {
+            if (error.code === 11000) { // MongoDB duplicate key error code
+                throw new ApiError("You are already following this user", httpStatus.status.BAD_REQUEST);
+            }
+            throw error;
+        }
 
         return newFollow;
 

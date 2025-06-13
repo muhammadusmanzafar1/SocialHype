@@ -186,21 +186,24 @@ exports.getCommunityModerators = async (req, res) => {
         const userIds = members.map(member => member.userId);
 
         return {
-            users: members?.map(member => ({
-                _id: member._id,
-                userId: member.userId._id || null,
-                username: member.userId.username || null,
-                fullName: member.userId.fullName || null,
-                email: member.userId.email || null,
-                profilePicture: member.userId.profilePicture || null,
-                gender: member.userId.gender || null,
-                status: member.userId.status || null,
-                createdOn: member.userId.createdAt || null,
-                lastActive: member.userId.lastActiveAt || "N/A",
-                totalPosts: member.userId.postsCount || 0,
-                accountStatus: member.userId.isDisabled ? "isDisable" : "Enabled",
-                userType: member.userId.userType || null,
-            })),
+            users: members.map(member => {
+                const user = member.userId; // could be null
+                return {
+                    _id: member._id,
+                    userId: user?._id || null,
+                    username: user?.username || null,
+                    fullName: user?.fullName || null,
+                    email: user?.email || null,
+                    profilePicture: user?.profilePicture || null,
+                    gender: user?.gender || null,
+                    status: user?.status || null,
+                    createdOn: user?.createdAt || null,
+                    lastActive: user?.lastActiveAt || "N/A",
+                    totalPosts: user?.postsCount || 0,
+                    accountStatus: user?.isDisabled ? "isDisable" : "Enabled",
+                    userType: user?.userType || null,
+                };
+            }),
             totalMembers,
             totalPages: Math.ceil(totalMembers / limit),
             currentPage: parseInt(page)

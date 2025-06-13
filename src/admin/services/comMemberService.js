@@ -149,19 +149,16 @@ exports.deleteCommunityMembers = async (req) => {
 exports.deleteCommunityMember = async (req) => {
     try {
         const { memberId } = req.params;
-
-        const memberData = await CommunityMember.findOne({ userId: memberId });
-
-        const member = await CommunityMember.findOneAndDelete({ _id: memberData._id });
+        const member = await CommunityMember.findOneAndDelete({ _id: memberId });
         if (!member) {
             throw new ApiError('Community member not found for userId', httpStatus.status.NOT_FOUND);
         }
 
-        const posts = await CommunityPost.find({ postedBy: memberData.userId, communityId: memberData.communityId });
+        const posts = await CommunityPost.find({ postedBy: member.userId, communityId: member.communityId });
         const postIds = posts.map(post => post._id);
 
         await Promise.all([
-            CommunityPost.deleteMany({ postedBy: memberData.userId, communityId: memberData.communityId }),
+            CommunityPost.deleteMany({ postedBy: member.userId, communityId: member.communityId }),
             CommunityReport.deleteMany({ postId: { $in: postIds } })
         ]);
 

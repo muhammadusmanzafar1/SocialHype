@@ -19,8 +19,9 @@ exports.createStory = async (req, res) => {
         let finalMediaType = mediaType;
 
         if (req.files && req.files.mediaUrl && req.files.mediaUrl.length > 0) {
-            const media = await sharp(req.files.mediaUrl[0].buffer).resize(720).toBuffer();
-            const uploadResult = await cloudinary(media, 'story');
+            const file = req.files.mediaUrl[0];
+            const resizedBuffer = await sharp(file.buffer).resize(720).toBuffer();
+            const uploadResult = await uploadToCloudinary(resizedBuffer, file.mimetype, 'story');
             finalMediaUrl = uploadResult.secure_url;
             finalMediaType = uploadResult.resource_type;
         }

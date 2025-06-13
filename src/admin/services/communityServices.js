@@ -152,12 +152,14 @@ exports.createCommunity = async (req, res) => {
         let avatarImageUrl = '';
         let bannerImageUrl = '';
         if (req.files?.avatar?.[0]) {
-            const uploadAvatar = await uploadToCloudinary(req.files.avatar[0].buffer);
+            const file = req.files.avatar[0];
+            const uploadAvatar = await uploadToCloudinary(file.buffer, file.mimetype);
             avatarImageUrl = uploadAvatar.secure_url;
           }
-      
+          
           if (req.files?.banner?.[0]) {
-            const uploadBanner = await uploadToCloudinary(req.files.banner[0].buffer);
+            const file = req.files.banner[0];
+            const uploadBanner = await uploadToCloudinary(file.buffer, file.mimetype);
             bannerImageUrl = uploadBanner.secure_url;
           }
 

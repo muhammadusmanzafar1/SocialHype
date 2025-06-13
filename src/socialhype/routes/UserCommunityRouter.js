@@ -2,6 +2,7 @@ const httpStatus = require('http-status');
 const express = require('express');
 const router = express.Router();
 const ApiError = require('../../../utils/ApiError');
+const upload = require('../../../middlewares/upload');
 
 const userCommunityController = require('../controllers/userCommunityController');
 
@@ -31,7 +32,7 @@ router.get('/getUserCommunities', async (req, res) => {
       }
     });
 
-router.post('/createCommunity', async (req, res) => {
+router.post('/createCommunity', upload.fields([ { name: 'avatar', maxCount: 1 }, { name: 'banner', maxCount: 1 }, ]), async (req, res) => {
     try {
         const post = await userCommunityController.createCommunity(req, res);
         res.status(httpStatus.status.CREATED).json({

@@ -1,9 +1,10 @@
 const httpStatus = require('http-status');
+const community = require("../../socialhype/models/community");
 const ApiError = require('../../../utils/ApiError');
 const UserCommunity = require('../models/community');
 const CommunityMember = require('../models/communityMembers');
 const CommunityPost = require('../models/communityPost');
-const cloudinary = require('../../../utils/cloudinary');
+const uploadToCloudinary = require('../../../utils/cloudinaryUpload');
 
 exports.getAllCommunities = async (req, res) => {
     try {
@@ -28,21 +29,27 @@ exports.getAllCommunities = async (req, res) => {
 exports.createCommunity = async (req, res) => {
     try {
         const userId = req.user._id;
-        const body = req.body;
-        const { avatarUrl, bannerUrl } = body;
+        const { moderators = [], ...body} = req.body;
 
+        const existingCommunity = await community.findOne({ name: body.name });
+        
+        if (existingCommunity) {
+            throw new ApiError("Community with this name already exists", httpStatus.status.BAD_REQUEST);
+        }
 
         let avatarImageUrl = '';
         let bannerImageUrl = '';
-
-        if (avatarUrl) {
-            const uploadImgavatar = await cloudinary.uploader.upload(avatarUrl);
-            avatarImageUrl = uploadImgavatar.url;
-        }
-        if (bannerUrl) {
-            const uploadImgbanner = await cloudinary.uploader.upload(bannerUrl);
-            bannerImageUrl = uploadImgbanner.url;
-        }
+        if (req.files?.avatar?.[0]) {
+            const file = req.files.avatar[0];
+            const uploadAvatar = await uploadToCloudinary(file.buffer, file.mimetype);
+            avatarImageUrl = uploadAvatar.secure_url;
+          }
+          
+          if (req.files?.banner?.[0]) {
+            const file = req.files.banner[0];
+            const uploadBanner = await uploadToCloudinary(file.buffer, file.mimetype);
+            bannerImageUrl = uploadBanner.secure_url;
+          }
 
         const model = await UserCommunity.newEntity(avatarImageUrl, bannerImageUrl, body);
         const newCommunity = new UserCommunity(model);
@@ -58,8 +65,22 @@ exports.createCommunity = async (req, res) => {
         if (!member) {
             throw new ApiError("Failed to create community member", httpStatus.status.INTERNAL_SERVER_ERROR);
         }
+        const filteredModerators = moderators.filter(id => id !== userId);
 
-        return await newCommunity.save();
+        if (filteredModerators.length > 0) {
+            const moderatorDocs = filteredModerators.map(modId => ({
+                communityId: newCommunity._id,
+                userId: modId,
+                role: 'moderator',
+                isDisabled: false,
+            }));
+
+            await CommunityMember.insertMany(moderatorDocs);
+        }
+
+        const savedCommunity = await newCommunity.save();
+
+        return savedCommunity;
     } catch (error) {
         if (error instanceof ApiError) {
             throw error;

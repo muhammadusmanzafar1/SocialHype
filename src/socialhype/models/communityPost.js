@@ -37,10 +37,11 @@ const communitySchema = new mongoose.Schema({
         enum: ['active', 'inactive', 'deleted', 'disabled'],
         default: 'active',
     },
-    reportCount: {
-        type: Number,
+    reports: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'CommunityReport',
         default: 0,
-    },
+    }],
     createdAt: {
         type: Date,
         default: Date.now,

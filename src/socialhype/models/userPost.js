@@ -73,13 +73,15 @@ const PostSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
-  reports: [
-    {
-      report: { type: mongoose.Schema.Types.ObjectId, ref: 'PostReport' },
-      createdAt: { type: Date, default: Date.now },
-      default: [],
-    },
-  ],
+  reports: {
+    type: [
+      {
+        report: { type: mongoose.Schema.Types.ObjectId, ref: 'PostReport' },
+        createdAt: { type: Date, default: Date.now },
+      }
+    ],
+    default: [],
+  },
   createdAt: {
     type: Date,
     default: Date.now,

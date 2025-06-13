@@ -285,9 +285,6 @@ exports.getAllPosts = async (req, res) => {
             .skip((page - 1) * limit)
             .limit(parseInt(limit));
             
-            if (!posts || posts.length === 0) {
-                throw new ApiError( "No posts found", httpStatus.status.NOT_FOUND);
-            }
         const totalPosts = await Post.countDocuments();
 
         return {

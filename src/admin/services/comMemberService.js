@@ -230,6 +230,8 @@ exports.addCommunityMember = async (req, res) => {
         if (!community) {
             throw new ApiError('Community not found', httpStatus.status.NOT_FOUND);
         }
+        const existingMembers = await CommunityMember.find({ userId: { $in: userIds }, communityId });
+    
         if (type !== 'moderator' && type !== 'member' && type !== 'admin') {
             throw new ApiError('Invalid role type', httpStatus.status.BAD_REQUEST);
         }
@@ -241,14 +243,17 @@ exports.addCommunityMember = async (req, res) => {
             return await community.save();
         }
         const addedMembers = [];
+        let existingUserIds = existingMembers.map(member => member.userId.toString());
         for (const userId of userIds) {
-
+            if (existingMembers.some(member => member.userId.toString() === userId)) {
+                continue;
+            }
             const communityMember = new CommunityMember({ userId, communityId, role: type });
             await communityMember.save();
             addedMembers.push(communityMember);
         }
 
-        return addedMembers;
+        return {addedMembers, existingUserIds};
     } catch (error) {
         if (error instanceof ApiError) {
             return error;

@@ -225,15 +225,17 @@ const userProfile = async (req, userId) => {
 
      let avatarImageUrl = '';
      let bannerImageUrl = '';
-        if (req.files?.profilePicture?.[0]) {
-            const uploadAvatar = await uploadToCloudinary(req.files.profilePicture[0].buffer);
-            avatarImageUrl = uploadAvatar.secure_url;
-          }
-      
-          if (req.files?.profileBanner?.[0]) {
-            const uploadBanner = await uploadToCloudinary(req.files.profileBanner[0].buffer);
-            bannerImageUrl = uploadBanner.secure_url;
-          }
+     if (req.files?.profilePicture?.[0]) {
+          const file = req.files.profilePicture[0];
+          const uploadAvatar = await uploadToCloudinary(file.buffer, file.mimetype); 
+          avatarImageUrl = uploadAvatar.secure_url;
+        }
+        
+        if (req.files?.profileBanner?.[0]) {
+          const file = req.files.profileBanner[0];
+          const uploadBanner = await uploadToCloudinary(file.buffer, file.mimetype);
+          bannerImageUrl = uploadBanner.secure_url;
+        }
 
 
      // Update user profile fields

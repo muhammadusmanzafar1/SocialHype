@@ -285,7 +285,7 @@ exports.getAllPosts = async (req, res) => {
             .skip((page - 1) * limit)
             .limit(parseInt(limit));
             
-        const totalPosts = await Post.countDocuments();
+        const totalPosts = await Post.countDocuments({author: userId});
 
         return {
             posts,
@@ -309,17 +309,24 @@ exports.getAllReports = async (req, res) => {
         const { page = 1, limit = 10 } = req.query;
 
         const reports = await Post.find({ author: userId, "reports": { $exists: true, $ne: [] } })
-            .populate("author")
-            .populate("reports.user")
-            .sort({ createdAt: -1 })
-            .skip((page - 1) * limit)
-            .limit(parseInt(limit));
+        .populate("author")
+        .populate({
+          path: 'reports.report',
+          populate: {
+            path: 'user',
+            model: 'User'
+          }
+        })
+        .sort({ createdAt: -1 })
+        .skip((page - 1) * limit)
+        .limit(parseInt(limit));
 
-        const totalReports = await PostReport.countDocuments({ post: { $in: reports.map(post => post._id) } });
+        const filteredReports = reports.filter(post => post.reports && post.reports.length > 0);
 
+        const totalReports = await PostReport.countDocuments({ post: { $in: filteredReports.map(post => post._id) } });
 
         return {
-            reports,
+            reports: filteredReports,
             totalReports,
             totalPages: Math.ceil(totalReports / limit),
             currentPage: parseInt(page),

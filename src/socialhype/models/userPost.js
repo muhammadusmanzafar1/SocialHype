@@ -77,6 +77,7 @@ const PostSchema = new mongoose.Schema({
     {
       report: { type: mongoose.Schema.Types.ObjectId, ref: 'PostReport' },
       createdAt: { type: Date, default: Date.now },
+      default: [],
     },
   ],
   createdAt: {

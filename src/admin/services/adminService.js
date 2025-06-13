@@ -317,9 +317,6 @@ exports.getAllReports = async (req, res) => {
 
         const totalReports = await PostReport.countDocuments({ post: { $in: reports.map(post => post._id) } });
 
-        if (!reports || reports.length === 0) {
-            throw new ApiError("No reports found", httpStatus.status.NOT_FOUND);
-        }
 
         return {
             reports,

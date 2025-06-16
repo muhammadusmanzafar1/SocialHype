@@ -239,4 +239,56 @@ router.get('/searchCommunities', async (req, res) => {
       }
 });
 
+router.get('/getCommunityModerators/:communityId', async (req, res) => {
+    try {
+        const moderators = await userCommunityController.getCommunityModerators(req, res);
+        res.status(httpStatus.status.OK).json({
+          isSuccess: true,
+          message: "Community Moderators Fetched Successfully!",
+          moderators,
+        });
+    
+      } catch (error) {
+        if (error instanceof ApiError) {
+            return res.status(error.statusCode).json({
+              isSuccess: false,
+              error: {
+                message: error.message,
+                statusCode: error.statusCode,
+              },
+            });
+          }
+    
+        return res
+          .status(httpStatus.status.INTERNAL_SERVER_ERROR)
+          .json("Something went wrong!");
+      }
+});
+
+router.post('/addModerator/:communityId', async (req, res) => {
+    try {
+        const moderator = await userCommunityController.addModerator(req, res);
+        res.status(httpStatus.status.OK).json({
+          isSuccess: true,
+          message: "Moderator Added Successfully!",
+          moderator,
+        });
+
+      } catch (error) {
+        if (error instanceof ApiError) {
+            return res.status(error.statusCode).json({
+              isSuccess: false,
+              error: {
+                message: error.message,
+                statusCode: error.statusCode,
+              },
+            });
+          }
+
+        return res
+          .status(httpStatus.status.INTERNAL_SERVER_ERROR)
+          .json("Something went wrong!");
+      }
+});
+
 module.exports = router;

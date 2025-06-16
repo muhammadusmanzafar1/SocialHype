@@ -29,10 +29,10 @@ exports.getAllCommunities = async (req, res) => {
 exports.createCommunity = async (req, res) => {
     try {
         const userId = req.user._id;
-        const { moderators = [], ...body} = req.body;
+        const { moderators = [], ...body } = req.body;
 
         const existingCommunity = await community.findOne({ name: body.name });
-        
+
         if (existingCommunity) {
             throw new ApiError("Community with this name already exists", httpStatus.status.BAD_REQUEST);
         }
@@ -43,13 +43,13 @@ exports.createCommunity = async (req, res) => {
             const file = req.files.avatar[0];
             const uploadAvatar = await uploadToCloudinary(file.buffer, file.mimetype);
             avatarImageUrl = uploadAvatar.secure_url;
-          }
-          
-          if (req.files?.banner?.[0]) {
+        }
+
+        if (req.files?.banner?.[0]) {
             const file = req.files.banner[0];
             const uploadBanner = await uploadToCloudinary(file.buffer, file.mimetype);
             bannerImageUrl = uploadBanner.secure_url;
-          }
+        }
 
         const model = await UserCommunity.newEntity(avatarImageUrl, bannerImageUrl, body);
         const newCommunity = new UserCommunity(model);
@@ -72,6 +72,7 @@ exports.createCommunity = async (req, res) => {
                 communityId: newCommunity._id,
                 userId: modId,
                 role: 'moderator',
+                status: 'active',
                 isDisabled: false,
             }));
 
@@ -95,7 +96,7 @@ exports.getCommunityById = async (req, res) => {
         const community = await UserCommunity.findById(communityId)
             .populate('adminId', 'name email profilePicture');
 
-        const communityMembers = await CommunityMember.find({ communityId })
+        const communityMembers = await CommunityMember.find({ communityId, status: 'active' })
             .populate('userId');
 
         if (communityMembers && communityMembers.length > 0) {
@@ -107,6 +108,7 @@ exports.getCommunityById = async (req, res) => {
                     email: member.userId.email,
                     profilePicture: member.userId.profilePicture || '',
                     role: member.role,
+                    status: member.status || '',
                     isDisabled: member.isDisabled,
                     joinedAt: member.joinedAt,
                     lastActiveAt: member.lastActiveAt
@@ -221,26 +223,44 @@ exports.joinCommunity = async (req, res) => {
 exports.getCommunityMembers = async (req, res) => {
     try {
         const { communityId } = req.params;
-        const members = await CommunityMember.find({ communityId })
-            .populate('userId', 'name email profilePicture')
-            .select('userId role isDisabled joinedAt lastActiveAt');
+        const { page = 1, limit = 10 } = req.query;
+
+        const skip = (page - 1) * limit;
+
+        const members = await CommunityMember.find({ communityId, role: 'member' })
+            .populate('userId', 'username fullName profilePicture')
+            .select('userId role isDisabled joinedAt lastActiveAt')
+            .skip(skip)
+            .limit(parseInt(limit));
+
+        const totalMembers = await CommunityMember.countDocuments({ communityId, role: 'member' });
+
         if (!members || members.length === 0) {
             throw new ApiError('No members found in this community', httpStatus.status.NOT_FOUND);
         }
-        return members
+
+        const formattedMembers = members
             .filter(member => member.userId !== null)
             .map(member => ({
                 userDetail: {
                     userId: member.userId._id,
-                    name: member.userId.fullName || member.userId.username || '',
-                    email: member.userId.email,
+                    fullName: member.userId.fullName || '',
+                    username: member.userId.username || '',
                     profilePicture: member.userId.profilePicture || ''
                 },
                 role: member.role,
+                status: member.status || '',
                 isDisabled: member.isDisabled,
                 joinedAt: member.joinedAt,
                 lastActiveAt: member.lastActiveAt
             }));
+
+        return {
+            members: formattedMembers,
+            totalMembers,
+            totalPages: Math.ceil(totalMembers / limit),
+            currentPage: parseInt(page)
+        };
     }
     catch (error) {
         if (error instanceof ApiError) {
@@ -300,5 +320,82 @@ exports.searchCommunities = async (req, res) => {
             throw error;
         }
         throw new ApiError(`Something went wrong while searching for communities ${error.message}`, error.statusCode || httpStatus.status.INTERNAL_SERVER_ERROR);
+    }
+}
+
+exports.getCommunityModerators = async (req, res) => {
+    try {
+        const { communityId } = req.params;
+        const moderators = await CommunityMember.find({ communityId, role: 'moderator' })
+            .populate('userId', 'username fullName profilePicture')
+            .select('userId role isDisabled joinedAt lastActiveAt');
+        if (!moderators || moderators.length === 0) {
+            throw new ApiError('No moderators found in this community', httpStatus.status.NOT_FOUND);
+        }
+        const mod = moderators
+            .filter(mod => mod.userId !== null)
+            .map(mod => ({
+                userDetail: {
+                    userId: mod.userId._id,
+                    fullName: mod.userId.fullName || '',
+                    username: mod.userId.username || '',
+                    profilePicture: mod.userId.profilePicture || ''
+                },
+                role: mod.role,
+                isDisabled: mod.isDisabled,
+                joinedAt: mod.joinedAt,
+                lastActiveAt: mod.lastActiveAt
+            }));
+
+        return mod;
+    }
+    catch (error) {
+        if (error instanceof ApiError) {
+            throw error;
+        }
+        throw new ApiError(`Something went wrong while fetching community moderators ${error.message}`, error.statusCode || httpStatus.status.INTERNAL_SERVER_ERROR);
+    }
+}
+
+exports.addModerator = async (req, res) => {
+    try {
+        const { communityId } = req.params;
+        const { userIds = [] } = req.body;
+
+        if (!Array.isArray(userIds) || userIds.length === 0) {
+            throw new ApiError('User ID is required to add a moderator', httpStatus.status.BAD_REQUEST);
+        }
+
+        const existingModerators = await CommunityMember.find({
+            communityId,
+            userId: { $in: userIds },
+            role: 'moderator',
+            status: 'active'
+        });
+
+        if (existingModerators.length > 0) {
+            const existingUserIds = existingModerators.map(mod => mod.userId.toString());
+            throw new ApiError(`Users with IDs ${existingUserIds.join(', ')} are already moderators of this community`, httpStatus.status.BAD_REQUEST);
+        }
+
+        const newModerators = userIds.map(userId => ({
+            communityId,
+            userId,
+            role: 'moderator',
+            status: 'active',
+        }));
+
+        const savedModerators = await CommunityMember.insertMany(newModerators);
+        
+        if (!savedModerators || savedModerators.length === 0) {
+            throw new ApiError('Failed to add moderators', httpStatus.status.INTERNAL_SERVER_ERROR);
+        }
+        return savedModerators;
+
+    } catch (error) {
+        if (error instanceof ApiError) {
+            throw error;
+        }
+        throw new ApiError(`Something went wrong while adding a moderator ${error.message}`, error.statusCode || httpStatus.status.INTERNAL_SERVER_ERROR);
     }
 }

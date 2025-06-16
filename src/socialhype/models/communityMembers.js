@@ -15,6 +15,11 @@ const communitySchema = new mongoose.Schema({
         type: Boolean,
         default: false,
     },
+    status: {
+        type: String,
+        enum: ["pending", "active"],
+        default: "pending",
+    },
     joinedAt: {
         type: Date,
         default: Date.now,

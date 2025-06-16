@@ -369,7 +369,7 @@ router.delete('/rejectCommunityRequest/:communityId/:userId', async (req, res) =
       }
 });
 
-router.put('/changeCommunityAdmin/:communityId', async (req, res) => {
+router.put('/changeCommunityAdmin/:communityId/:userId', async (req, res) => {
   try {
     const changedAdmin = await userCommunityController.changeCommunityAdmin(req, res);
     res.status(httpStatus.status.OK).json({

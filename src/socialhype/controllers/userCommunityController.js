@@ -492,7 +492,36 @@ exports.rejectCommunityRequest = async (req, res) => {
 
 exports.changeCommunityAdmin = async (req, res) => {
     try {
-        const { communityId } = req.params
+        const { communityId, userId } = req.params;
+
+        const community = await UserCommunity.findById(communityId);
+        if (!community) {
+            throw new ApiError('Community not found', httpStatus.status.NOT_FOUND);
+        }
+
+        const currentAdmin = await CommunityMember.findOne({
+            communityId,
+            userId: community.adminId,
+            role: 'admin'
+        });
+
+        if (!currentAdmin) {
+            throw new ApiError('Current admin record not found', httpStatus.status.NOT_FOUND);
+        }
+
+        currentAdmin.role = 'moderator';
+        await currentAdmin.save();
+
+        let newAdminMember = await CommunityMember.findOne({ communityId, userId });
+
+            newAdminMember.role = 'admin';
+            newAdminMember.status = 'active';
+            await newAdminMember.save();
+        
+        community.adminId = userId;
+        await community.save();
+
+        return newAdminMember;
 
     } catch (error) {
         if (error instanceof ApiError) {

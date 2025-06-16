@@ -29,7 +29,11 @@ exports.getAllCommunities = async (req, res) => {
 exports.createCommunity = async (req, res) => {
     try {
         const userId = req.user._id;
-        const { moderators = [], ...body } = req.body;
+        let { moderators = [], ...body } = req.body;
+
+        if (typeof moderators === 'string') {
+            moderators = [moderators];
+        }
 
         const existingCommunity = await community.findOne({ name: body.name });
 
@@ -59,13 +63,14 @@ exports.createCommunity = async (req, res) => {
             communityId: newCommunity._id,
             userId: userId,
             role: 'admin',
+            status: 'active',
             isDisabled: false,
         });
         const member = await communityMembers.save();
         if (!member) {
             throw new ApiError("Failed to create community member", httpStatus.status.INTERNAL_SERVER_ERROR);
         }
-        const filteredModerators = moderators.filter(id => id !== userId);
+        const filteredModerators = Array.isArray(moderators) ? moderators.filter(id => id !== userId) : [];
 
         if (filteredModerators.length > 0) {
             const moderatorDocs = filteredModerators.map(modId => ({
@@ -139,18 +144,33 @@ exports.updateCommunity = async (req, res) => {
         if (!community) {
             throw new ApiError('Community not found', httpStatus.status.NOT_FOUND);
         }
+
+        if (body.name) {
+            const existingCommunity = await UserCommunity.findOne({
+                name: body.name,
+                _id: { $ne: communityId },
+            });
+
+            if (existingCommunity) {
+                throw new ApiError("Community with this name already exists", httpStatus.status.BAD_REQUEST);
+            }
+        }
+
         Object.keys(body).forEach((key) => {
             if (body[key] !== undefined) {
                 community[key] = body[key];
             }
         });
-        if (body.avatarUrl) {
-            const uploadImg = await cloudinary.uploader.upload(body.avatarUrl);
-            community.avatarUrl = uploadImg.url;
+        if (req.files?.avatar?.[0]) {
+            const file = req.files.avatar[0];
+            const uploadAvatar = await uploadToCloudinary(file.buffer, file.mimetype);
+            community.avatarUrl = uploadAvatar.secure_url;
         }
-        if (body.bannerUrl) {
-            const uploadImg = await cloudinary.uploader.upload(body.bannerUrl);
-            community.bannerUrl = uploadImg.url;
+
+        if (req.files?.banner?.[0]) {
+            const file = req.files.banner[0];
+            const uploadBanner = await uploadToCloudinary(file.buffer, file.mimetype);
+            community.bannerUrl = uploadBanner.secure_url;
         }
 
         return await community.save();
@@ -227,9 +247,9 @@ exports.getCommunityMembers = async (req, res) => {
 
         const skip = (page - 1) * limit;
 
-        const members = await CommunityMember.find({ communityId, role: 'member' })
+        const members = await CommunityMember.find({ communityId, role: 'member', status: 'active' })
             .populate('userId', 'username fullName profilePicture')
-            .select('userId role isDisabled joinedAt lastActiveAt')
+            .select('userId role isDisabled joinedAt lastActiveAt status')
             .skip(skip)
             .limit(parseInt(limit));
 
@@ -326,9 +346,9 @@ exports.searchCommunities = async (req, res) => {
 exports.getCommunityModerators = async (req, res) => {
     try {
         const { communityId } = req.params;
-        const moderators = await CommunityMember.find({ communityId, role: 'moderator' })
+        const moderators = await CommunityMember.find({ communityId, role: 'moderator', status: 'active' })
             .populate('userId', 'username fullName profilePicture')
-            .select('userId role isDisabled joinedAt lastActiveAt');
+            .select('userId role isDisabled joinedAt lastActiveAt status');
         if (!moderators || moderators.length === 0) {
             throw new ApiError('No moderators found in this community', httpStatus.status.NOT_FOUND);
         }
@@ -386,7 +406,7 @@ exports.addModerator = async (req, res) => {
         }));
 
         const savedModerators = await CommunityMember.insertMany(newModerators);
-        
+
         if (!savedModerators || savedModerators.length === 0) {
             throw new ApiError('Failed to add moderators', httpStatus.status.INTERNAL_SERVER_ERROR);
         }
@@ -397,5 +417,87 @@ exports.addModerator = async (req, res) => {
             throw error;
         }
         throw new ApiError(`Something went wrong while adding a moderator ${error.message}`, error.statusCode || httpStatus.status.INTERNAL_SERVER_ERROR);
+    }
+}
+
+exports.getCommunityRequests = async (req, res) => {
+    try {
+        const { communityId } = req.params;
+        const { page = 1, limit = 10 } = req.query;
+
+        const skip = (page - 1) * limit;
+
+        const pendingRequests = await CommunityMember.find({ communityId, role: "member", status: "pending" })
+            .populate('userId', 'fullName username profilePicture status')
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(parseInt(limit));
+
+        const totalRequests = await CommunityMember.countDocuments({ communityId, role: "member", status: "pending" });
+
+        return {
+            requests: pendingRequests,
+            totalRequests,
+            totalPages: Math.ceil(totalRequests / limit),
+            currentPage: parseInt(page)
+        };
+    } catch (error) {
+        if (error instanceof ApiError) {
+            throw error;
+        }
+        throw new ApiError(`Something went wrong while fetching community requests ${error.message}`, error.statusCode || httpStatus.status.INTERNAL_SERVER_ERROR);
+    }
+}
+
+exports.acceptCommunityRequest = async (req, res) => {
+    try {
+        const { communityId, userId } = req.params;
+
+        const request = await CommunityMember.findOne({ communityId, userId, role: "member", status: "pending" });
+        if (!request) {
+            throw new ApiError('Request not found or already processed', httpStatus.status.NOT_FOUND);
+        }
+        request.status = "active";
+        request.lastActiveAt = new Date();
+        const updatedRequest = await request.save();
+        if (!updatedRequest) {
+            throw new ApiError('Failed to accept community request', httpStatus.status.INTERNAL_SERVER_ERROR);
+        }
+        return updatedRequest;
+    } catch (error) {
+        if (error instanceof ApiError) {
+            throw error;
+        }
+        throw new ApiError(`Something went wrong while accepting community request ${error.message}`, error.statusCode || httpStatus.status.INTERNAL_SERVER_ERROR);
+    }
+}
+
+exports.rejectCommunityRequest = async (req, res) => {
+    try {
+        const { communityId, userId } = req.params;
+
+        const request = await CommunityMember.findOneAndDelete({ communityId, userId, role: "member", status: "pending" });
+        if (!request) {
+            throw new ApiError('Request not found or already processed', httpStatus.status.NOT_FOUND);
+        }
+
+        return { message: 'Community request rejected successfully', userId, communityId };
+    } catch (error) {
+        if (error instanceof ApiError) {
+            throw error;
+        }
+        throw new ApiError(`Something went wrong while rejecting community request ${error.message}`, error.statusCode || httpStatus.status.INTERNAL_SERVER_ERROR);
+    }
+};
+
+exports.changeCommunityAdmin = async (req, res) => {
+    try {
+        const { communityId } = req.params
+
+    } catch (error) {
+        if (error instanceof ApiError) {
+            throw error;
+        }
+        throw new ApiError(`Something went wrong while rejecting community request ${error.message}`, error.statusCode || httpStatus.status.INTERNAL_SERVER_ERROR);
     }
 }

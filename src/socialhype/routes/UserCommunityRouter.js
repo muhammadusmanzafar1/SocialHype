@@ -84,7 +84,7 @@ router.get('/getCommunityById/:communityId', async (req, res) => {
       }
 });
 
-router.put('/updateCommunity/:communityId', async (req, res) => {
+router.put('/updateCommunity/:communityId', upload.fields([ { name: 'avatar', maxCount: 1 }, { name: 'banner', maxCount: 1 }, ]), async (req, res) => {
     try {
         const post = await userCommunityController.updateCommunity(req, res);
         res.status(httpStatus.status.OK).json({
@@ -290,5 +290,109 @@ router.post('/addModerator/:communityId', async (req, res) => {
           .json("Something went wrong!");
       }
 });
+
+router.get('/getCommunityRequests/:communityId', async (req, res) => {
+    try {
+        const requests = await userCommunityController.getCommunityRequests(req, res);
+        res.status(httpStatus.status.OK).json({
+          isSuccess: true,
+          message: "Community Requests Fetched Successfully!",
+          requests,
+        });
+
+      } catch (error) {
+        if (error instanceof ApiError) {
+            return res.status(error.statusCode).json({
+              isSuccess: false,
+              error: {
+                message: error.message,
+                statusCode: error.statusCode,
+              },
+            });
+          }
+
+        return res
+          .status(httpStatus.status.INTERNAL_SERVER_ERROR)
+          .json("Something went wrong!");
+      }
+});
+
+router.put('/acceptCommunityRequest/:communityId/:userId', async (req, res) => {
+    try {
+        const request = await userCommunityController.acceptCommunityRequest(req, res);
+        res.status(httpStatus.status.OK).json({
+          isSuccess: true,
+          message: "Community Request Accepted Successfully!",
+          request,
+        });
+
+      } catch (error) {
+        if (error instanceof ApiError) {
+            return res.status(error.statusCode).json({
+              isSuccess: false,
+              error: {
+                message: error.message,
+                statusCode: error.statusCode,
+              },
+            });
+          }
+
+        return res
+          .status(httpStatus.status.INTERNAL_SERVER_ERROR)
+          .json("Something went wrong!");
+      }
+}); 
+
+router.delete('/rejectCommunityRequest/:communityId/:userId', async (req, res) => {
+    try {
+        const request = await userCommunityController.rejectCommunityRequest(req, res);
+        res.status(httpStatus.status.OK).json({
+          isSuccess: true,
+          message: "Community Request Rejected Successfully!",
+          request,
+        });
+
+      } catch (error) {
+        if (error instanceof ApiError) {
+            return res.status(error.statusCode).json({
+              isSuccess: false,
+              error: {
+                message: error.message,
+                statusCode: error.statusCode,
+              },
+            });
+          }
+
+        return res
+          .status(httpStatus.status.INTERNAL_SERVER_ERROR)
+          .json("Something went wrong!");
+      }
+});
+
+router.put('/changeCommunityAdmin/:communityId', async (req, res) => {
+  try {
+    const changedAdmin = await userCommunityController.changeCommunityAdmin(req, res);
+    res.status(httpStatus.status.OK).json({
+      isSuccess: true,
+      message: "Admin Changed Successfully!",
+      changedAdmin,
+    });
+
+  } catch (error) {
+    if (error instanceof ApiError) {
+        return res.status(error.statusCode).json({
+          isSuccess: false,
+          error: {
+            message: error.message,
+            statusCode: error.statusCode,
+          },
+        });
+      }
+
+    return res
+      .status(httpStatus.status.INTERNAL_SERVER_ERROR)
+      .json("Something went wrong!");
+  }
+})
 
 module.exports = router;

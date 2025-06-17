@@ -9,15 +9,28 @@ const uploadToCloudinary = require('../../../utils/cloudinaryUpload');
 exports.getAllCommunities = async (req, res) => {
     try {
         const userId = req.user._id;
-        const communities = await CommunityMember.find({ userId })
-            .populate("communityId", "name description avatarUrl")
-            .select("communityId isDisabled joinedAt lastActiveAt role");
+        const { page = 1, limit = 10 } = req.query;
+        const skip = (page - 1) * limit;
+
+        const [communities, total] = await Promise.all([
+            CommunityMember.find({ userId })
+                .populate("communityId", "name description avatarUrl status")
+                .select("communityId isDisabled joinedAt lastActiveAt role")
+                .skip(skip)
+                .limit(parseInt(limit)),
+            CommunityMember.countDocuments({ userId })
+        ]);
 
         if (!communities || communities.length === 0) {
             throw new ApiError('No communities found', httpStatus.status.NOT_FOUND);
         }
 
-        return communities;
+        return {
+            communities,
+            total,
+            totalPages: Math.ceil(total / limit),
+            currentPage: parseInt(page)
+        };
     } catch (error) {
         if (error instanceof ApiError) {
             throw error;

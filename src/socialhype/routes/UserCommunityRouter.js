@@ -8,11 +8,11 @@ const userCommunityController = require('../controllers/userCommunityController'
 
 router.get('/getUserCommunities', async (req, res) => {
     try {
-        const post = await userCommunityController.getAllCommunities(req, res);
+        const communities = await userCommunityController.getAllCommunities(req, res);
         res.status(httpStatus.status.OK).json({
           isSuccess: true,
           message: "User Communities Fetched Successfully!",
-          post,
+          communities,
         });
     
       } catch (error) {

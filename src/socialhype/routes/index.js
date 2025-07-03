@@ -12,4 +12,6 @@ app.use('/follower', validate, require('./followerRoute.js'));
 app.use("/story", validate, require("./storyRouter.js"));
 app.use("/poll", validate, require("./pollRouter.js"));
 
+app.use("/spotify", validate, require("./spotifyRouter.js"));
+
 module.exports = app;

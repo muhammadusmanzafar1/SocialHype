@@ -8,6 +8,7 @@ const cookieParser = require('cookie-parser');
 const upload = multer({ storage: multer.memoryStorage() });
 const helmet = require("helmet");
 const compression = require("compression");
+const apiRouter = require('./src/socialhype/routes/index')
 
 const app = express();
 
@@ -29,6 +30,14 @@ app.use(function (err, req, res, next) {
 });
 
 // Middleware
+app.use((req, res, next) => {
+    const originalSend = res.send;
+    res.send = function (body) {
+      console.log(`Response for ${req.method} ${req.originalUrl} [Status: ${res.statusCode}]:`, body);
+      originalSend.call(this, body);
+    };
+    next();
+  });
 
 // sanitize request data
 app.use(mongoSanitize());
@@ -56,6 +65,7 @@ app.use(compression());
 // Routes
 // app.use("/api/users", require("./routes/userRoutes"));
 app.use("/api/auth", require("./src/auth/routes/authRoute"));
+app.use("/api", apiRouter);
 
 // convert error to CustomError, if needed
 app.use(errorConverter);

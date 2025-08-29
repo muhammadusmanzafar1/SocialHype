@@ -3,13 +3,68 @@ const utils = require('../../../utils/utils');
 const mongoose = require("mongoose");
 
 const authMethods = ['email', 'google', 'facebook', 'apple', 'github', 'phone'];
+const genders = ['Male', 'Female', 'Other'];
 
 const entitySchema = new mongoose.Schema({
+    username: String,
+    displayName: String,
     firstName: String,
     lastName: String,
     fullName: String,
-    userName: String,
-    imgUrl: String,
+    email: {
+        type: String,
+        lowercase: true,
+    },
+    phone: String,
+    interests: {
+        type: [String],
+        default: [],
+    },
+    gender: {
+        type: String,
+        enum: genders,
+    },
+    status: {
+        type: String,
+        enum: ['pending', 'active', 'deleted', 'blocked'],
+        default: 'pending',
+    },
+    userType: {
+        type: String,
+        enum: ['normal', 'creator'],
+        default: 'normal',
+    },
+    joinedCommunity: {
+        type: [mongoose.Schema.Types.ObjectId],
+        ref: "community",
+    },
+    accountReports: {
+        type: [mongoose.Schema.Types.ObjectId],
+        ref: "user",
+    },
+    postReports: {
+        type: [mongoose.Schema.Types.ObjectId],
+        ref: "post",
+    },
+    isDisabled: {
+        type: Boolean,
+        default: false,
+    },
+    profilePicture: String,
+    profileBanner: String,
+    createdAt: {
+        type: Date,
+        default: Date.now,
+    },
+    lastActiveAt: Date,
+    joiningDate: {
+        type: Date,
+        default: Date.now,
+    },
+    postsCount: {
+        type: Number,
+        default: 0,
+    },
     authMethod: {
         type: String,
         enum: authMethods,
@@ -17,18 +72,8 @@ const entitySchema = new mongoose.Schema({
     },
     countryCode: String,
     ISOCode: String,
-    phone: String,
-    email: {
-        type: String,
-        lowercase: true,
-    },
     activationCode: String,
     password: String,
-    status: {
-        type: String,
-        enum: ['pending', 'active', 'deleted', 'blocked'],
-        default: 'pending',
-    },
     role: {
         type: String,
         enum: ['superAdmin', 'user', 'admin'],
@@ -41,19 +86,11 @@ const entitySchema = new mongoose.Schema({
         type: Boolean,
         default: false,
     },
-    isProfileCompleted: {
-        type: Boolean,
-        default: false,
-    },
     lastAccess: {
         type: Date,
         default: null,
     },
     about: String,
-    notificationCount: {
-        type: Number,
-        default: 0,
-    },
     googleId: String,
     facebookId: String,
     appleId: String,
@@ -81,21 +118,28 @@ const entitySchema = new mongoose.Schema({
 
 entitySchema.statics.newEntity = async function (body, createdByAdmin = true) {
     const model = {
-        firstName: body.firstName,
-        lastName: body.lastName,
-        fullName: body.firstName && body.lastName ? `${body.firstName} ${body.lastName}` : null,
-        authMethod: body.authMethod,
-        userName: body.firstName ? `${body.firstName}_${utils.generateRandomAlphaNumeric()}` : utils.generateRandomAlphaNumeric(),
+        // username: body.username || (body.firstName ? `${body.firstName}_${utils.generateRandomAlphaNumeric()}` : utils.generateRandomAlphaNumeric()),
+        // displayName: body.displayName || (body.firstName && body.lastName ? `${body.firstName} ${body.lastName}` : null),
+        // firstName: body.firstName,
+        // lastName: body.lastName,
+        // fullName: body.firstName && body.lastName ? `${body.firstName} ${body.lastName}` : null,
         email: body.email,
-        phone: body.phone,
-        ISOCode: body.ISOCode,
-        countryCode: body.countryCode,
+        // phone: body.phone,
+        // gender: body.gender,
+        // profilePicture: body.profilePicture || null,
+        // profileBanner: body.profileBanner || null,
+        // userType: body.userType || 'normal',
+        authMethod: body.authMethod,
+        // ISOCode: body.ISOCode,
+        // countryCode: body.countryCode,
         role: body.role,
-        about: body.about,
-        googleId: body.googleId,
-        facebookId: body.facebookId,
-        appleId: body.appleId,
+        // about: body.about,
+        // googleId: body.googleId,
+        // facebookId: body.facebookId,
+        // appleId: body.appleId,
         stripeCustomerId: body.stripeCustomerId || "",
+        createdAt: new Date(),
+        joiningDate: new Date(),
     };
 
     if (body.password) {
